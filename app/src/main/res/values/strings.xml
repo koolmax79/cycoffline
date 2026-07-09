@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">cycoffline</string>
+    <string name="number_trips">Количество тренировок</string>
+
+    <string name="sync_all">Синхронизировать все</string>
+    <string name="distance">Дистанция</string>
+    <string name="altitude">Высота</string>
+    <string name="ascent">Набор высоты</string>
+    <string name="cadence">Каденс</string>
+    <string name="heart">ЧСС</string>
+    <string name="heartByTime">ЧСС по времени</string>
+    <string name="grade">Градиент</string>
+    <string name="speed">Скорость</string>
+    <string name="temperature">Температура</string>
+    <string name="elapsedTime">Время тренировки</string>
+    <string name="movingTime">Время в движении</string>
+    <string name="totalElapsedTime">Время тренировок</string>
+    <string name="totalMovingTime">Время в движении</string>
+    <string name="start">Старт</string>
+
+    <string name="sync_device">Синхоронизация</string>
+    <string name="fit_list">Тренировки</string>
+    <string name="calendar">Календарь</string>
+    <string name="statistics">Статистика</string>
+    <string name="settings">Настройки</string>
+    <string name="workout">Тренировка</string>
+
+    <string name="info">Статистика</string>
+    <string name="charts">Графики</string>
+
+    <string name="device">Устройство</string>
+    <string name="forget">забыть</string>
+
+    <string name="empty"/>
+</resources>
