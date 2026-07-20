@@ -1,11 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.device
 
-import android.R.attr.direction
-import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Color
-import android.util.Log
-import android.widget.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,62 +18,41 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.paint
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.github.mikephil.charting.utils.Utils
-import no.nordicsemi.android.kotlin.ble.core.ServerDevice
-import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
 import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.DEVICE_STATUS
-import ru.koolmax.cycoffline.data.DeviceFile
+import ru.koolmax.cycoffline.data.DeviceFileStatus
 import ru.koolmax.cycoffline.data.DeviceStatus
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.pairToString
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
-import ru.koolmax.cycoffline.presentation.ui.deviceList.DeviceBLECard
 import ru.koolmax.cycoffline.presentation.ui.deviceList.DeviceListViewModel
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
-import ru.koolmax.cycoffline.presentation.ui.settings.SettingsViewModel
-import ru.koolmax.cycoffline.ui.theme.CycofflineTheme
+import ru.koolmax.cycoffline.navigation.Screen
 import ru.koolmax.cycoffline.ui.theme.LightCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
-import kotlin.String
 
 @Composable
 fun SyncDeviceScreen(navController: NavController, viewModel: DeviceListViewModel = hiltViewModel()) {
@@ -94,7 +66,7 @@ fun SyncDeviceScreen(navController: NavController, viewModel: DeviceListViewMode
             Text("Устройства", style = MaterialTheme.typography.headlineMedium )
             IconButton(onClick = {
                 navController.navigate(
-                    Route.ScanBLE.route
+                    Screen.ScanBLE.route
                 )
             }, colors = IconButtonDefaults.filledIconButtonColors()) {
                 ColoredIcon(
@@ -125,9 +97,9 @@ fun SavedDevicesList(deviceList: List<DeviceStatus>, onDelete: (DeviceInfo) -> U
 }
 
 @Composable
-fun FilesList(deviceFileList: SnapshotStateList<DeviceFile>, onItemClick: (DeviceFile) -> Unit) {
+fun FilesList(deviceFileList: SnapshotStateList<DeviceFileStatus>, onItemClick: (DeviceFileStatus) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(items = deviceFileList, key = { it.name }) {
+        items(items = deviceFileList, key = { it.deviceFile.name }) {
             DeviceFileCard(it, onItemClick = {
                 onItemClick(it)
             })
@@ -208,7 +180,7 @@ fun SavedDeviceCard(device: DeviceStatus, onDelete: (DeviceInfo) -> Unit, onLoad
 }
 
 @Composable
-fun DeviceFileCard(deviceFile: DeviceFile, onItemClick: (DeviceFile) -> Unit) {
+fun DeviceFileCard(deviceFile: DeviceFileStatus, onItemClick: (DeviceFileStatus) -> Unit) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space25)
     ) {
@@ -218,8 +190,8 @@ fun DeviceFileCard(deviceFile: DeviceFile, onItemClick: (DeviceFile) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(horizontalAlignment = Alignment.End) {
-                Text(deviceFile.name, style = MaterialTheme.typography.bodyLarge)
-                Text(MeasureUtil.getFileSize(deviceFile.size), style = MaterialTheme.typography.bodyMedium)
+                Text(deviceFile.deviceFile.name, style = MaterialTheme.typography.bodyLarge)
+                Text(MeasureUtil.getFileSize(deviceFile.deviceFile.size), style = MaterialTheme.typography.bodyMedium)
             }
             when {
                 deviceFile.isNotSynchronized -> {
@@ -243,12 +215,12 @@ fun DeviceFileCard(deviceFile: DeviceFile, onItemClick: (DeviceFile) -> Unit) {
 
                 deviceFile.isSynchronizing -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(MeasureUtil.getPercent(deviceFile.loadedSize.toFloat() / deviceFile.size.toFloat() * 100)
+                        Text(MeasureUtil.getPercent(deviceFile.loadedPart * 100)
                                 .pairToString(),
                             modifier = Modifier.padding(LocalSpacing.current.space100)
                         )
                         CircularProgressIndicator(
-                            progress = { deviceFile.loadedSize.toFloat() / deviceFile.size.toFloat() },
+                            progress = { deviceFile.loadedPart },
                         )
                     }
                 }

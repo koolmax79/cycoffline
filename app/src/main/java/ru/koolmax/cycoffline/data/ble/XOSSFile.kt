@@ -3,9 +3,9 @@ package ru.koolmax.cycoffline.data.ble
 import android.util.Log
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 
-class XOSSFile(private val file: String, private val progressListener: OnProgressListener) {
+class XOSSFile(private val file: String, private val progressListener: DeviceFileProgressListener) {
     private enum class Mode { NONE, INFO, BODY, READY }
     enum class ReceiveStatus { NONE, ASK, END }
 
@@ -35,7 +35,7 @@ class XOSSFile(private val file: String, private val progressListener: OnProgres
     //val isSilence get() = mode == Mode.SILENCE
 
     fun receiveCtrl(buf: ByteArray) {
-        Log.i("FitOpener3", "fileSize = ${buf.toHex()}")
+        //Log.i("FitOpener3", "fileSize = ${buf.toHex()}")
         nextState()
         mutex.unlock()
     }
@@ -48,13 +48,13 @@ class XOSSFile(private val file: String, private val progressListener: OnProgres
                 progressListener.onBegin(file, fileSize)
                 nextState()
                 mutex.unlock()
-                Log.i("FitOpener3", "fileSize = ${fileSize.toString()}")
+                //Log.i("FitOpener3", "fileSize = ${fileSize.toString()}")
             }
             Mode.BODY -> {
                 status = receiveBody(buf)
                 if(status == ReceiveStatus.END)
                     mutex.unlock()
-                Log.i("FitOpener3", "fileSize = ${receivedSize()}")
+                //Log.i("FitOpener3", "fileSize = ${receivedSize()}")
             }
             else -> { }
         }
@@ -91,7 +91,7 @@ class XOSSFile(private val file: String, private val progressListener: OnProgres
     suspend fun wait() {
         mutex.withLock {  }
         mutex.tryLock()
-        Log.i("FitOpener3", mode.name)
+        //Log.i("FitOpener3", mode.name)
     }
 
     fun getFileData(): ByteArray {

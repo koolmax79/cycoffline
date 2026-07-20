@@ -1,18 +1,14 @@
 package ru.koolmax.cycoffline.presentation.ui.calendar
 
-import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
@@ -28,8 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +44,7 @@ import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.presentation.MeasureUtil
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
+import ru.koolmax.cycoffline.navigation.Screen
 import ru.koolmax.cycoffline.ui.theme.CycofflineTheme
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 import java.time.DayOfWeek
@@ -59,7 +53,7 @@ import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(navController: NavController, modifier: Modifier, viewModel: CalendarViewModel = hiltViewModel()) {
+fun CalendarScreen(navController: NavController, viewModel: CalendarViewModel = hiltViewModel()) {
     val fitSessionList by  remember { viewModel.fitSessionList }.collectAsState()
     val statistic by remember { viewModel.fitSessionStatistic }.collectAsState()
     val currentMonth = remember { YearMonth.now() }
@@ -81,7 +75,7 @@ fun CalendarScreen(navController: NavController, modifier: Modifier, viewModel: 
             setShowDialog = {
                 showDialog.value = it
             }, onConfirmation = {
-                navController.navigate(Route.Workout.route.replace("{fit}", it.fileName))
+                navController.navigate(Screen.Workout.route.replace("{fit}", it.fileName))
         } )
     }
 
@@ -108,7 +102,7 @@ fun CalendarScreen(navController: NavController, modifier: Modifier, viewModel: 
                     }
                     if(list.count() == 1)  {
                         navController.navigate(
-                            Route.Workout.route.replace(
+                            Screen.Workout.route.replace(
                             "{fit}",
                             list.first().fileName
                             )

@@ -19,12 +19,15 @@ import kotlinx.coroutines.runBlocking
 import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
 import ru.koolmax.cycoffline.data.DEVICE_STATUS
 import ru.koolmax.cycoffline.data.DeviceFile
+import ru.koolmax.cycoffline.data.DeviceFileStatus
 import ru.koolmax.cycoffline.data.DeviceStatus
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
+import ru.koolmax.cycoffline.data.UriFileStatus
 import ru.koolmax.cycoffline.data.ble.BLEDeviceRepository
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import ru.koolmax.cycoffline.data.db.FitRepository
 import ru.koolmax.cycoffline.data.media.FileRepository
+import ru.koolmax.cycoffline.data.media.UriFileProgressListener
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -95,7 +98,35 @@ class DeviceFileService : Service() {
 
     private fun startDownload(notification: DownloadNotifications) {
         //Log.i("FitOpener3", "start ${allFiles}")
-        val listener = object : OnProgressListener() {
+        serviceScope.launch {
+            //val job = CoroutineScope(Dispatchers.IO).launch {
+            //Log.i("cycoffline1", "serviceScope.launch")
+            runBlocking {
+                generateSequence { serviceRepository.getFileForLoad() }.forEach { file ->
+                    if(file is DeviceFileStatus)
+                        load(file, this, notification)
+                    if(file is UriFileStatus)
+                        load(file, notification)
+                }
+                serviceRepository.setServiceStop()
+            }
+            //}
+            //job.join()
+            //Log.i("cycoffline1", "end service")
+
+            //val data = deviceRepository.getFile(file)
+            //Log.i("FitOpener3", "start fileRepository.addFit(data, file)")
+            //fileRepository.addFit(data, file)?.let {
+            //    Log.i("FitOpener3", "start fitRepository.add(it)")
+            //    fitRepository.add(it)
+            //}
+            //Log.i("FitOpener3", "finish ${file}")
+            stopSelf()
+        }
+    }
+
+    suspend fun load(file: DeviceFileStatus, scope: CoroutineScope, notification: DownloadNotifications) {
+        val listener = object : DeviceFileProgressListener() {
             private var max = 0
             private var file = ""
             private lateinit var device: DeviceInfo
@@ -114,8 +145,10 @@ class DeviceFileService : Service() {
 
             override fun onStep(count: Int) {
                 //Log.i("cycoffline1", "onStep = ${count}")
-                serviceRepository.update(DeviceFile(file, device, max, count))
-                val text = "${file} " + if(this.max > 0) MeasureUtil.getPercent(count.toFloat() / this.max.toFloat() * 100f).toList().joinToString(" ")
+                val status = DeviceFileStatus(DeviceFile(file.deviceFile.name, max, device ), count)
+                serviceRepository.update(status)
+                val text =
+                    "${file.deviceFile.name} " + if (this.max > 0) MeasureUtil.getPercent(status.loadedPart * 100f).toList().joinToString(" ")
                     else MeasureUtil.getFileSize(count)
                 notification.updateNotification(text)
             }
@@ -129,43 +162,43 @@ class DeviceFileService : Service() {
                 serviceRepository.update(DeviceStatus(device))
             }
         }
-        serviceScope.launch {
-                //val job = CoroutineScope(Dispatchers.IO).launch {
-                //Log.i("cycoffline1", "serviceScope.launch")
-            runBlocking {
-                generateSequence { serviceRepository.getFileForLoad() }.forEach { file ->
-                    //Log.i("cycoffline1", "get file ${file.name}")
-                    //Log.i("cycoffline1", "end load ${it.name}")
-                        deviceRepository.connect(file.device, this, listener)?.use { bleDevice ->
-                            //Log.i("cycoffline1", "start ${file.name}")
-                            val data = bleDevice.getFile(file.name)
-                            //Log.i("cycoffline1", data.size.toString())
-                            fileRepository.addFit(data, file.name)?.let {
-                                fitRepository.add(it)
-                            }
-                            //Log.i("cycoffline1", "end ${file.name}")
-                            delay(1000)
-                        }
-                        //serviceRepository.printSize()
-                    }
-                    //Log.i("cycoffline1", "end runBlocking")
-                }
-            serviceRepository.setServiceStop()
-        }
-            //}
-            //job.join()
-            //Log.i("cycoffline1", "end service")
 
-            //val data = deviceRepository.getFile(file)
-            //Log.i("FitOpener3", "start fileRepository.addFit(data, file)")
-            //fileRepository.addFit(data, file)?.let {
-            //    Log.i("FitOpener3", "start fitRepository.add(it)")
-            //    fitRepository.add(it)
-            //}
-            //Log.i("FitOpener3", "finish ${file}")
-            stopSelf()
+        //Log.i("cycoffline1", "get file ${file.name}")
+        //Log.i("cycoffline1", "end load ${it.name}")
+        deviceRepository.connect(file.deviceFile.device, scope, listener)?.use { bleDevice ->
+            //Log.i("cycoffline1", "start ${file.name}")
+            val data = bleDevice.getFile(file.deviceFile.name)
+            //Log.i("cycoffline1", data.size.toString())
+            fileRepository.addFit(data, file.deviceFile.name)?.let {
+                fitRepository.add(it)
+            }
+            //Log.i("cycoffline1", "end ${file.name}")
+            delay(1000)
         }
+        //serviceRepository.printSize()
+    }
 
+    suspend fun load(file: UriFileStatus, notification: DownloadNotifications) {
+        val listener = object : UriFileProgressListener() {
+            var name = ""
+            override fun onBegin() {
+            }
+            override fun onStep(step: Int) {
+                file.loadedStep = 0
+                val text = "$name " + MeasureUtil.getPercent(file.loadedPart * 100).toList().joinToString(" ")
+                notification.updateNotification(text)
+            }
+            override fun onFinish() {
+                file.loadedStep = 1
+                val text = "$name " + MeasureUtil.getPercent(file.loadedPart * 100).toList().joinToString(" ")
+                notification.updateNotification(text)
+            }
+        }
+        fileRepository.addFit(file.uri)?.let {
+            listener.name = it.fileName
+            fitRepository.add(it)
+        }
+    }
 
     private fun startAsForegroundService(notification: Notification) {
         ServiceCompat.startForeground(

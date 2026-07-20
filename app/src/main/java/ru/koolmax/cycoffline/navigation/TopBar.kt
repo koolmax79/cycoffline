@@ -1,4 +1,4 @@
-package ru.koolmax.cycoffline.presentation.ui.navigation
+package ru.koolmax.cycoffline.navigation
 
 import android.R
 import android.annotation.SuppressLint

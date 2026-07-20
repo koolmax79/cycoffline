@@ -6,11 +6,12 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
 import ru.koolmax.cycoffline.data.DeviceFile
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileStatus
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import java.io.File
 
-class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleGatt, val modem: YModem, val scope: CoroutineScope, val progressListener: OnProgressListener): AutoCloseable {
+class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleGatt, val modem: YModem, val scope: CoroutineScope, val progressListener: DeviceFileProgressListener): AutoCloseable {
     lateinit var btGatt: ClientBleGatt
 
     init {
@@ -19,10 +20,10 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
 
     companion object {
         @SuppressLint("MissingPermission")
-        suspend fun connect(device: DeviceInfo, scope: CoroutineScope, context: Context, progressListener: OnProgressListener): BLEDevice? {
+        suspend fun connect(device: DeviceInfo, scope: CoroutineScope, context: Context, progressListener: DeviceFileProgressListener): BLEDevice? {
             try {
                 val btGatt = ClientBleGatt.connect(context, device.address, scope)
-                Log.i("cycoffline1", "gatt ${btGatt.isConnected.toString()}")
+                //Log.i("cycoffline1", "gatt ${btGatt.isConnected.toString()}")
                 if (btGatt.isConnected) {
                     progressListener.onConnect(device)
                     val modem =
@@ -38,21 +39,15 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
     }
 
     @SuppressLint("MissingPermission")
-    suspend fun getFileList() : List<DeviceFile> {
-        val list = mutableListOf<DeviceFile>()
-///        val list = mutableListOf<FitFileRecord>(FitFileRecord("20220618070720.fit", 83081),
-///            FitFileRecord("20240510133515.fit", 183081)  )
-        modem.readFile("filelist.txt").decodeToString().split("\r\n").sortedByDescending { it }.forEach {
-            val fields = it.split(" ")
+    suspend fun getFileList()  = modem.readFile("filelist.txt").decodeToString().split("\r\n").sortedByDescending { it }.mapNotNull {
             try {
+                val fields = it.split(" ")
                 //Log.i("FitOpener3", "${fields[0]}")
-                list.add(DeviceFile(fields[0], device, fields[1].toInt()))
+                DeviceFile(fields[0], fields[1].toInt(), device)
             } catch (e: Exception) {
-                //Log.i("FitOpener1", "exeption ${fields.toString()}")
+                null//Log.i("FitOpener1", "exeption ${fields.toString()}")
             }
         }
-        return list
-    }
 
     @SuppressLint("MissingPermission")
     suspend fun getFile(file: String): ByteArray {

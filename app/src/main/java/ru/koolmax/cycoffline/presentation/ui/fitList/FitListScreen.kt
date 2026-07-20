@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.fitList
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -32,6 +33,10 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,76 +44,75 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.MeasureUtil.Companion.getYearMonth
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
-import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
+import ru.koolmax.cycoffline.presentation.ui.AlertDialogYesNo
+import ru.koolmax.cycoffline.navigation.Screen
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 import java.time.LocalDateTime
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FitListScreen(navController: NavController, viewModel: FitViewModel = hiltViewModel()) {
     val sessions by viewModel.fitSessionList.collectAsState()
-    //val openDialog = remember { mutableStateOf(false) }
-
     val openDocumentLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetMultipleContents()
     ) { uris: List<Uri> ->
-        uris.forEach { viewModel.addFitToLib(it) }
+        uris.forEach {
+            viewModel.addFitToLib(it)
+        }
     }
-        Scaffold(
-            floatingActionButton = {
-                FloatingActionButton(onClick = {
-                    openDocumentLauncher.launch("application/octet-stream")
-                    }) {
-                    Icon(Icons.Filled.Add, "Add fit file")
+
+    Scaffold(modifier = Modifier.fillMaxSize(), floatingActionButton = {
+        FloatingActionButton(onClick = {
+            openDocumentLauncher.launch("application/octet-stream")
+        }) {
+            Icon(Icons.Filled.Add, "Add fit file")
+        }
+    }) { paddingValues ->
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            sessions.groupBy {
+                it.startTime?.let {
+                    LocalDateTime.of(it.year, it.month.value, 1, 0, 0, 0)
                 }
-            },
-        ) { _ ->
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                sessions.groupBy {
-                    it.startTime?.let {
-                        LocalDateTime.of(it.year, it.month.value, 1, 0, 0, 0)
+            }.forEach { date, fitList ->
+                stickyHeader {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(LocalSpacing.current.space100)
+                    ) {
+                        Text(
+                            getYearMonth(date), style = MaterialTheme.typography.titleLarge,
+                            fontWeight = MaterialTheme.typography.titleLarge.fontWeight
+                        )
                     }
-                }.forEach { date, fitList ->
-                    stickyHeader {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(LocalSpacing.current.space100)
-                        ) {
-                            Text(getYearMonth(date), style = MaterialTheme.typography.titleLarge,
-                                fontWeight = MaterialTheme.typography.titleLarge.fontWeight)
+                }
+                items(items = fitList, key = { session -> session.fileName }) { session ->
+                    FitCard(
+                        session,
+                        onOpen = {
+                            navController.navigate(
+                            Screen.Workout.route.replace("{fit}", session.fileName)
+                            )
+                        },
+                        onDelete = {
+                            viewModel.delFitSession(it.fileName)
                         }
-                    }
-                    items(items = fitList, key = { session -> session.fileName }) { session ->
-                        FitCard(
-                            session,
-                            onOpen = {
-                                navController.navigate(
-                                    Route.Workout.route.replace(
-                                        "{fit}",
-                                        session.fileName
-                                    )
-                                )
-                            },
-                            onDelete = {
-                                viewModel.delFitSession(session.fileName)
-                            })
-                    }
+                    )
                 }
             }
         }
-        //    if(openDialog.value)
-        //AlertDialogYesNo(dialogText = "Удалить тренировку",
-        //    onYes = { viewModel.delFitSession(fileForDel.value) },
-        //    onClose = { openDialog.value = false })
+    }
 }
 
 @Composable
 fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (FitSessionItem) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var openDialog by remember { mutableStateOf(false) }
     val state = rememberSwipeToDismissBoxState()
     SwipeToDismissBox(modifier = Modifier.fillMaxSize(),
         state = state,
@@ -205,9 +209,16 @@ fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (F
         }
         },
         onDismiss = {
-            onDelete(itm)
+            openDialog = true
         }
     )
+    if(openDialog) {
+        AlertDialogYesNo(
+            dialogText = "Удалить тренировку",
+            onYes = { onDelete(itm) },
+            onNo = { scope.launch { state.reset() } },
+            onClose = { openDialog = false })
+    }
 }
 
 @Preview

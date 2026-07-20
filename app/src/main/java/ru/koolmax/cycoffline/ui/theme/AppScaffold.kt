@@ -1,32 +1,42 @@
 package ru.koolmax.cycoffline.ui.theme
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.createGraph
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
+import ru.koolmax.cycoffline.navigation.BarItem
 import ru.koolmax.cycoffline.presentation.ui.calendar.CalendarScreen
 import ru.koolmax.cycoffline.presentation.ui.device.SyncDeviceScreen
 import ru.koolmax.cycoffline.presentation.ui.deviceList.ScanBLEScreen
 import ru.koolmax.cycoffline.presentation.ui.fitList.FitListScreen
-import ru.koolmax.cycoffline.presentation.ui.navigation.BottomBar
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
-import ru.koolmax.cycoffline.presentation.ui.navigation.TopBar
+import ru.koolmax.cycoffline.navigation.BottomBar
+import ru.koolmax.cycoffline.navigation.NavigationState
+import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.navigation.TopBar
 import ru.koolmax.cycoffline.presentation.ui.settings.SettingsScreen
 import ru.koolmax.cycoffline.presentation.ui.statistics.StatisticsScreen
 import ru.koolmax.cycoffline.presentation.ui.workout.WorkoutScreen
@@ -34,72 +44,37 @@ import ru.koolmax.cycoffline.presentation.ui.workout.WorkoutScreen
 //@SuppressLint("MutableCollectionMutableState")
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AppScaffold(startDestination: String, navController: NavHostController, viewModel: AppScaffoldViewModel = hiltViewModel()) {
-    val bottomBarState = remember { (mutableStateOf(true)) }
+fun AppScaffold(startDestination: String, navigationState: NavigationState, viewModel: AppScaffoldViewModel = hiltViewModel()) {
     val topBarState = rememberSaveable { (mutableStateOf(true)) }
-    val bottomButton = remember { mutableStateOf(listOf<Route>() ) }
+    var bottomButtonList by remember { mutableStateOf(listOf<BarItem>() ) }
     val topTitle = rememberSaveable { mutableStateOf("") }
-    val countNotDisplayedFit by remember { viewModel.fitSesNotDisplayedCount }.collectAsState()
+    val countNotDisplayedFit = remember { viewModel.fitSesNotDisplayedCount }.collectAsState()
 
-    navController.addOnDestinationChangedListener { controller,
+    navigationState.navHostController.addOnDestinationChangedListener { controller,
                                                     destination,
                                                     arguments ->
         when (destination.route) {
-            Route.SyncDevice.route -> {
+            Screen.Devices.route -> {
                 topBarState.value = false
-                bottomBarState.value = true
-                bottomButton.value = listOf(
-                    Route.SyncDevice,
-                    Route.FitList,
-                    Route.Calendar,
-                    Route.Statistics,
-                    Route.Settings
-                )
+                bottomButtonList = BarItem.mainBottoms
             }
-            Route.FitList.route -> {
+            Screen.FitList.route -> {
                 topBarState.value = false
-                bottomBarState.value = true
-                bottomButton.value = listOf(
-                    Route.SyncDevice,
-                    Route.FitList,
-                    Route.Calendar,
-                    Route.Statistics,
-                    Route.Settings
-                )
+                bottomButtonList = BarItem.mainBottoms
             }
-            Route.Calendar.route -> {
+            Screen.Calendar.route -> {
                 topBarState.value = false
-                bottomBarState.value = true
-                bottomButton.value = listOf(
-                    Route.SyncDevice,
-                    Route.FitList,
-                    Route.Calendar,
-                    Route.Statistics,
-                    Route.Settings
-                )
+                bottomButtonList = BarItem.mainBottoms
             }
-            Route.Statistics.route -> {
+            Screen.Statistics.route -> {
                 topBarState.value = false
-                bottomBarState.value = true
-                bottomButton.value = listOf(
-                    Route.SyncDevice,
-                    Route.FitList,
-                    Route.Calendar,
-                    Route.Statistics,
-                    Route.Settings
-                )
+                bottomButtonList = BarItem.mainBottoms
             }
-            Route.Settings.route -> {
+            Screen.Settings.route -> {
                 topBarState.value = false
-                bottomBarState.value = true
-                bottomButton.value = listOf(
-                    Route.SyncDevice,
-                    Route.FitList,
-                    Route.Calendar,
-                    Route.Statistics,
-                    Route.Settings
-                )
+                bottomButtonList = BarItem.mainBottoms
             }
+/*
             Route.Workout.route -> {
                 topBarState.value = false
                 bottomBarState.value = false
@@ -109,18 +84,25 @@ fun AppScaffold(startDestination: String, navController: NavHostController, view
                 topTitle.value = "Поиск устройств"
                 bottomBarState.value = false
             }
+*/
         }
     }
 
+    val navBackStackEntry by navigationState.navHostController.currentBackStackEntryAsState()
     Scaffold(bottomBar = {
-        BottomBar(navController, bottomBarState, bottomButton, countNotDisplayedFit)
+        if(bottomButtonList.isNotEmpty())
+            BottomBar(navigationState, navBackStackEntry, bottomButtonList, countNotDisplayedFit)
         },
         topBar = {
-            if(topBarState.value)
-                TopBar(navController, topTitle.value)
+            //if(navController.graph.hierarchy)
+            //TopBar(navigationState.navHostController, topTitle.value)
         }
     ) { padding ->
-        NavHost(navController = navController, graph = getNavGraph(startDestination, navController, padding), modifier = Modifier.padding(padding))
+        NavHost(
+            navController = navigationState.navHostController,
+            graph = getNavGraph(startDestination, navigationState.navHostController, padding),
+            modifier = Modifier.padding(padding)
+        )
     }
 }
 
@@ -130,34 +112,34 @@ fun getNavGraph(
     paddingValues: PaddingValues,
 ): NavGraph {
     return controller.createGraph(startDestination) {
-        composable(Route.ScanBLE.route) {
-            ScanBLEScreen(controller, modifier = Modifier.padding(paddingValues))
+        navigation(route = Screen.Devices.route, startDestination = Screen.SyncDeviceScreen.route) {
+            composable(Screen.SyncDeviceScreen.route) {
+                SyncDeviceScreen(controller)
+            }
+            composable(Screen.ScanBLE.route) {
+                ScanBLEScreen(controller)
+            }
         }
-        composable(Route.FitList.route) {
-            FitListScreen(controller)
+        navigation(route = Screen.Fit.route, startDestination = Screen.FitList.route) {
+            composable(Screen.FitList.route) {
+                FitListScreen(controller)
+            }
+            composable(route = Screen.Workout.route,
+                arguments = listOf(navArgument("fit") {
+                    type = NavType.StringType
+                    nullable = false
+                })) {
+                WorkoutScreen(it.arguments?.getString("fit")!!)
+            }
         }
-        composable(Route.Calendar.route) {
-            CalendarScreen(controller, modifier = Modifier.padding(paddingValues))
+        composable(Screen.Calendar.route) {
+            CalendarScreen(controller)
         }
-        composable(Route.Statistics.route) {
-            StatisticsScreen(controller, modifier = Modifier.padding(paddingValues))
+        composable(Screen.Statistics.route) {
+            StatisticsScreen(controller)
         }
-        composable(Route.Settings.route) {
-            SettingsScreen(controller, modifier = Modifier.padding(paddingValues))
-        }
-        composable(route = Route.Workout.route,
-            arguments = listOf(navArgument("fit") {
-                type = NavType.StringType
-                nullable = false
-            })) {
-            WorkoutScreen(it.arguments?.getString("fit")!!)
-        }
-        composable(route = Route.SyncDevice.route,
-            arguments = listOf(navArgument("device") {
-                type = NavType.StringType
-                nullable = false
-            })) {
-            SyncDeviceScreen(controller)
+        composable(Screen.Settings.route) {
+            SettingsScreen(controller)
         }
     }
 }

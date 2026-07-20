@@ -9,11 +9,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,14 +34,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
+import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import ru.koolmax.cycoffline.data.db.toDeviceInfo
+import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
 import ru.koolmax.cycoffline.presentation.ui.settings.SettingsViewModel
+import ru.koolmax.cycoffline.ui.theme.LocalIconSize
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 
 @SuppressLint("ProduceStateDoesNotAssignValue")
 @Composable
-fun ScanBLEScreen(navController: NavController, modifier: Modifier, viewModel: DeviceListViewModel = hiltViewModel(),
+fun ScanBLEScreen(navController: NavController, viewModel: DeviceListViewModel = hiltViewModel(),
                      settingsViewModel: SettingsViewModel = hiltViewModel()) {
     val scanResultList by remember { viewModel.scanResultList }.collectAsState()
     LaunchedEffect(Unit) {
@@ -45,6 +54,15 @@ fun ScanBLEScreen(navController: NavController, modifier: Modifier, viewModel: D
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
             horizontalArrangement = Arrangement.SpaceBetween) {
+            IconButton(onClick = {
+                navController.popBackStack()
+            }) {
+                ColoredIcon(
+                    modifier = Modifier.size(LocalIconSize.current.size100),
+                    drawable = R.drawable.arrow_back_24px,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Text(text = "Сканирование", style =  MaterialTheme.typography.headlineMedium)
             CircularProgressIndicator()
         }

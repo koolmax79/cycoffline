@@ -9,7 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.LeadingIconTab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import ru.koolmax.cycoffline.navigation.BarItem
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 
@@ -30,7 +31,7 @@ fun WorkoutScreen(fit: String, viewModel: WorkoutViewModel = hiltViewModel()) {
         viewModel.getFitSession(fit)
     }
 
-    val tabs = listOf(TabRoute.Info, TabRoute.Charts, TabRoute.Statistics)
+    val tabs = BarItem.fitTabs
     val pagerState = rememberPagerState(pageCount = {
         tabs.size
     })
@@ -43,9 +44,9 @@ fun WorkoutScreen(fit: String, viewModel: WorkoutViewModel = hiltViewModel()) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Tabs(tabs: List<TabRoute>, pagerState: PagerState) {
+fun Tabs(tabs: List<BarItem>, pagerState: PagerState) {
     val scope = rememberCoroutineScope()
-    TabRow(selectedTabIndex = pagerState.currentPage,
+    PrimaryTabRow(selectedTabIndex = pagerState.currentPage,
         modifier = Modifier.fillMaxWidth()) {
         tabs.forEachIndexed { index, tab ->
             LeadingIconTab(
@@ -70,7 +71,7 @@ fun Tabs(tabs: List<TabRoute>, pagerState: PagerState) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TabsContent(tabs: List<TabRoute>, pagerState: PagerState, fit: String, viewModel: WorkoutViewModel) {
+fun TabsContent(tabs: List<BarItem>, pagerState: PagerState, fit: String, viewModel: WorkoutViewModel) {
     HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             when (page) {
@@ -92,6 +93,7 @@ fun TabsContent(tabs: List<TabRoute>, pagerState: PagerState, fit: String, viewM
 @Preview(showBackground = true)
 @Composable
 fun TabsPreview() {
+/*
     val tabs = listOf(
         TabRoute.Info,
         TabRoute.Charts
@@ -100,4 +102,5 @@ fun TabsPreview() {
         tabs.size
     })
     Tabs(tabs = tabs, pagerState = pagerState)
+*/
 }

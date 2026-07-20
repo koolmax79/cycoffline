@@ -10,8 +10,8 @@ import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScannerSettings
 import no.nordicsemi.android.kotlin.ble.scanner.BleScanner
-import ru.koolmax.cycoffline.data.DeviceFile
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileStatus
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +39,7 @@ class BLEDeviceRepository @Inject constructor(private val context: Context) {
     }
 
     //@SuppressLint("MissingPermission")
-    suspend fun connect(device: DeviceInfo, scope: CoroutineScope, progressListener: OnProgressListener): BLEDevice? {
+    suspend fun connect(device: DeviceInfo, scope: CoroutineScope, progressListener: DeviceFileProgressListener): BLEDevice? {
         //this.address = address
         //Log.i("cycoffline1", address)
         return BLEDevice.connect(device, scope, context, progressListener)

@@ -74,7 +74,7 @@ class ChartTypeState(type: ChartType) {
 }
 
 @Composable
-fun StatisticsScreen(navController: NavController, modifier: Modifier, viewModel: StatisticsViewModel = hiltViewModel()) {
+fun StatisticsScreen(navController: NavController, viewModel: StatisticsViewModel = hiltViewModel()) {
     val years by remember {  viewModel.years }.collectAsState()
     val yearState = remember { mutableIntStateOf(0) }
     val months by remember { viewModel.months }.collectAsState()

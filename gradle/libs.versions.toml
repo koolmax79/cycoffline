@@ -1,5 +1,5 @@
 [versions]
-agp = "9.2.1"
+agp = "9.3.0"
 comGoogleDevtoolsKspGradlePlugin = "2.3.7"
 coreKtx = "1.18.0"
 runtimeKtx = "2.11.2"

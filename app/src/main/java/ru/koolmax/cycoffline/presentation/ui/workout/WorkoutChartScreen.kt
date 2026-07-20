@@ -106,7 +106,7 @@ data class AxisY(val min: Double, val max: Double, val values: List<Double>) {
 
             if(match != null) {
                 val (b, m) = match.destructured
-                return Pair((b.toDouble() * 10.0.pow(6)  / 10.0).toInt(), m.toInt() - 5)
+                return Pair((b.replace(',', '.').toDouble() * 10.0.pow(6)  / 10.0).toInt(), m.toInt() - 5)
             }
             return Pair(0,0)
         }

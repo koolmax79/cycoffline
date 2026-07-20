@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.onStart
 import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import java.util.UUID
 import kotlin.experimental.xor
 
-class YModem(private val services: ClientBleGattServices, private val scope: CoroutineScope, private val progressListener: OnProgressListener) {
+class YModem(private val services: ClientBleGattServices, private val scope: CoroutineScope, private val progressListener: DeviceFileProgressListener) {
     private var curXOSSFile: XOSSFile? = null
 
     private enum class TXCmd(val v: Byte) { ACK(0x06), NAK(0x15), C(0x43) }

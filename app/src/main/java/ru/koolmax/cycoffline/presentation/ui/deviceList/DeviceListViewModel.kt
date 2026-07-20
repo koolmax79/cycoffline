@@ -1,6 +1,7 @@
 package ru.koolmax.cycoffline.presentation.ui.deviceList
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,10 +14,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import no.nordicsemi.android.kotlin.ble.core.scanner.BleScanResult
 import ru.koolmax.cycoffline.data.DEVICE_STATUS
-import ru.koolmax.cycoffline.data.DeviceFile
+import ru.koolmax.cycoffline.data.DeviceFileStatus
 import ru.koolmax.cycoffline.data.DeviceStatus
 import ru.koolmax.cycoffline.data.db.DeviceInfo
-import ru.koolmax.cycoffline.data.OnProgressListener
+import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import ru.koolmax.cycoffline.data.ble.BLEDeviceRepository
 import ru.koolmax.cycoffline.data.db.FitRepository
 import ru.koolmax.cycoffline.data.db.SettingsDBRepository
@@ -38,7 +39,7 @@ class DeviceListViewModel @Inject constructor(
     )
 
     val scanResultList = MutableStateFlow<List<BleScanResult>>(listOf())
-    val deviceFileList = mutableStateListOf<DeviceFile>()
+    val deviceFileList = mutableStateListOf<DeviceFileStatus>()
 
     val deviceList: StateFlow<List<DeviceStatus>> = combine(savedDeviceList,
         serviceRepository.deviceStatus) { savedList, status ->
@@ -59,7 +60,7 @@ class DeviceListViewModel @Inject constructor(
     private fun observeLoadFiles() {
         viewModelScope.launch {
             serviceRepository.currentLoadingFile.collect { file ->
-                val idx = deviceFileList.indexOfFirst { it.equalInfo(file) }
+                val idx = deviceFileList.indexOfFirst { it.deviceFile == file.deviceFile }
                 if(idx != -1)
                     deviceFileList[idx] = file
             }
@@ -89,7 +90,7 @@ class DeviceListViewModel @Inject constructor(
 
     fun getInfoFromDevice(deviceInfo: DeviceInfo) {
         viewModelScope.launch {
-            val listener = object : OnProgressListener() {
+            val listener = object : DeviceFileProgressListener() {
                 override fun onConnect(device: DeviceInfo) {
                     serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.CONNECTED))
                 }
@@ -99,17 +100,30 @@ class DeviceListViewModel @Inject constructor(
                 }
             }
             repository.connect(deviceInfo, this, listener)?.use {
-                val list = it.getFileList()
-                list.forEach {file ->
+                val newList = it.getFileList().map { file ->
                     if (fitRepository.contains(file.name))
-                        file.loadedSize = file.size;
+                        DeviceFileStatus( file, file.size)
+                    else {
+                        //Log.i("cycoffline1", "not load ${file.name}")
+                        DeviceFileStatus(file)
+                    }
                 }
-                deviceFileList.addAll(list)
+                newList.forEach {status ->
+                    val idx = deviceFileList.indexOfFirst { it.deviceFile == status.deviceFile }
+                    if(idx == -1) {
+                        deviceFileList.add(status)
+                        //Log.i("cycoffline1", "add ${it.deviceFile.name}")
+                    }
+                    else {
+                        deviceFileList[idx] = status
+                        //Log.i("cycoffline1", it.deviceFile.name)
+                    }
+                }
             }
         }
     }
 
-    fun saveDeviceFileToLib(file: DeviceFile) {
+    fun saveDeviceFileToLib(file: DeviceFileStatus) {
         val idx = deviceFileList.indexOf(file)
         deviceFileList[idx] = file.copy(loadedSize = 0)
         serviceRepository.addToLoad(deviceFileList[idx])

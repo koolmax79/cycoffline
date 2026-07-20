@@ -8,15 +8,19 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.koolmax.cycoffline.data.FileStatus
+import ru.koolmax.cycoffline.data.UriFileStatus
 import ru.koolmax.cycoffline.data.db.FitRepository
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.data.media.FileRepository
+import ru.koolmax.cycoffline.service.ServiceRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class FitViewModel @Inject constructor(
     private val fileRepository: FileRepository,
     private val fitRepository: FitRepository,
+    private val serviceRepository: ServiceRepository
 ) : ViewModel() {
     val fitSessionList: StateFlow<List<FitSessionItem>> = fitRepository.all()
         .stateIn(
@@ -27,9 +31,7 @@ class FitViewModel @Inject constructor(
 
     fun addFitToLib(uri: Uri) {
         viewModelScope.launch {
-            fileRepository.addFit(uri)?.let {
-                fitRepository.add(it)
-            }
+            serviceRepository.addToLoad(UriFileStatus(uri))
         }
     }
 

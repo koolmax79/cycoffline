@@ -30,11 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.min
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.garmin.fit.Gender
@@ -45,8 +43,6 @@ import ru.koolmax.cycoffline.presentation.DateTimeUtil
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
 import ru.koolmax.cycoffline.presentation.ui.lib.DatePickerModal
 import ru.koolmax.cycoffline.presentation.ui.lib.HorizontalPicker
-import ru.koolmax.cycoffline.presentation.ui.lib.PickerValueFormatter
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
 import ru.koolmax.cycoffline.presentation.ui.workout.getTextHeartRate
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
@@ -55,7 +51,7 @@ import java.time.LocalDate
 import kotlin.collections.isNotEmpty
 
 @Composable
-fun SettingsScreen(navController: NavController, modifier: Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = hiltViewModel()) {
 
     val birthday = remember { viewModel.birthday }.collectAsState()
     val gender = remember { viewModel.gender }.collectAsState()

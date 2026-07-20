@@ -6,13 +6,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import ru.koolmax.cycoffline.presentation.PermissionUtil
-import ru.koolmax.cycoffline.presentation.ui.navigation.Route
+import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.navigation.rememberNavigationState
 import ru.koolmax.cycoffline.ui.theme.AppScaffold
 import ru.koolmax.cycoffline.ui.theme.CycofflineTheme
 
@@ -50,8 +49,8 @@ class MainActivity : ComponentActivity() {
 //@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun Greeting() {
-    val navController = rememberNavController()
-    AppScaffold(startDestination = Route.FitList.route, navController = navController)
+    val navigationState = rememberNavigationState()
+    AppScaffold(startDestination = Screen.Fit.route, navigationState = navigationState)
 }
 
 @Preview(showBackground = true)
