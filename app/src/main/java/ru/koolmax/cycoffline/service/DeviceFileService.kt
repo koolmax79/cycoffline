@@ -130,7 +130,7 @@ class DeviceFileService : Service() {
             private var max = 0
             private var file = ""
             private lateinit var device: DeviceInfo
-            override fun onConnect(device: DeviceInfo) {
+            override fun onConnect(device: DeviceInfo, batteryLevel: Int) {
                 this.device = device
                 serviceRepository.update(
                     DeviceStatus(device, DEVICE_STATUS.CONNECTED)

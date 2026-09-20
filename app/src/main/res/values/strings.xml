@@ -6,6 +6,7 @@
     <string name="distance">Дистанция</string>
     <string name="altitude">Высота</string>
     <string name="ascent">Набор высоты</string>
+    <string name="descent">Спуск</string>
     <string name="cadence">Каденс</string>
     <string name="heart">ЧСС</string>
     <string name="heartByTime">ЧСС по времени</string>

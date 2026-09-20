@@ -14,23 +14,24 @@ sealed class Screen(val route: String) {
     object Statistics: Screen("statistics")
     object Settings: Screen("settings")
 
-    object FitInfo: Screen("")
-    object FitCharts: Screen("")
-    object FitStatistics: Screen("")
+    object FitInfo: Screen("fitInfo")
+    object FitCharts: Screen("fitCharts")
+    object FitStatistics: Screen("fitStatistics")
 }
 
 sealed class BarItem(val screen: Screen, val title: Int, val icon: Int, badge: Int = 0) {
-    object Device : BarItem(Screen.Devices, R.string.sync_device, R.drawable.sync_arrow_down)
-    object Fit : BarItem(Screen.Fit,R.string.fit_list, R.drawable.list_24)
-    object Calendar : BarItem(Screen.Calendar, R.string.calendar, R.drawable.calendar_month_24)
-    object Statistics : BarItem(Screen.Statistics, R.string.statistics, R.drawable.auto_graph_24)
-    object Settings : BarItem(Screen.Settings, R.string.settings, R.drawable.manage_accounts_24)
+    object Device : BarItem(Screen.Devices, R.string.sync_device, R.drawable.sync_bike_computer)
+    object Fit : BarItem(Screen.Fit,R.string.fit_list, R.drawable.training_list)
+    object Calendar : BarItem(Screen.Calendar, R.string.calendar, R.drawable.calendar)
+    object Statistics : BarItem(Screen.Statistics, R.string.statistics, R.drawable.statistics)
+    object Settings : BarItem(Screen.Settings, R.string.settings, R.drawable.user_profile)
 
-    object FitInfo : BarItem(Screen.FitInfo, R.string.info,R.drawable.page_info_24px)
-    object FitCharts : BarItem(Screen.FitCharts,R.string.charts, R.drawable.line_axis_24px)
-    object FitStatistics : BarItem(Screen.FitStatistics, R.string.statistics, R.drawable.line_axis_24px)
+    object FitInfo : BarItem(Screen.FitInfo, R.string.info,R.drawable.info)
+    object FitCharts : BarItem(Screen.FitCharts,R.string.charts, R.drawable.graphs)
+    object FitStatistics : BarItem(Screen.FitStatistics, R.string.statistics, R.drawable.statistics)
 
     companion object {
+        val empty = listOf<BarItem>()
         val mainBottoms = listOf(Device, Fit, Calendar, Statistics, Settings)
         val fitTabs = listOf(FitInfo, FitCharts, FitStatistics)
     }

@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.settings
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -70,7 +72,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
         })
 
         Row(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End) {
             Text(text = "Автоматический режим", style = MaterialTheme.typography.bodyLarge)
             Switch(modifier = Modifier.padding(horizontal = LocalSpacing.current.space100),
@@ -146,10 +148,9 @@ fun GenderSelector(modifier: Modifier = Modifier, gender: Gender, onClick: (Gend
             role = Role.RadioButton),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
-            ColoredIcon(
-                modifier = Modifier.size(LocalIconSize.current.size100),
-                drawable = R.drawable.female_24px,
-                color = MaterialTheme.colorScheme.primary
+            Image(
+                painter = painterResource(R.drawable.female),
+                contentDescription = null
             )
             RadioButton(selected = (Gender.FEMALE==gender),
                 onClick = null)
@@ -162,10 +163,9 @@ fun GenderSelector(modifier: Modifier = Modifier, gender: Gender, onClick: (Gend
             verticalAlignment = Alignment.CenterVertically) {
             RadioButton(selected = (Gender.MALE==gender),
                 onClick = null)
-            ColoredIcon(
-                modifier = Modifier.size(LocalIconSize.current.size100),
-                drawable = R.drawable.male_24px,
-                color = MaterialTheme.colorScheme.primary
+            Image(
+                painter = painterResource(R.drawable.male),
+                contentDescription = null
             )
         }
     }
@@ -197,7 +197,7 @@ fun HeartZones(modifier: Modifier = Modifier, heartZone: HeartZone) {
 @Composable
 fun Zone(zone: HeartZoneInfo) {
     val color = LocalCustomColorsPalette.current.getHeartZoneColor(zone.idx)
-    Row(modifier = Modifier.padding(2.dp)) {
+    Row(modifier = Modifier.padding(LocalSpacing.current.space25)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

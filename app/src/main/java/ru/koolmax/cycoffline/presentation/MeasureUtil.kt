@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Range
 import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.media.FitListType
 import ru.koolmax.cycoffline.data.media.XMeasurement
+import ru.koolmax.cycoffline.presentation.ui.statistics.ChartType
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.format.DateTimeFormatter
@@ -62,15 +63,9 @@ class MeasureUtil {
             return if (v != null) String.format("%d:%02d", v / 3600, (v / 60) % 60) else "-"
         }
 
-        fun getDistance(v: Int?): Pair<String, String> {
+        fun getDistance(v: Int?, format: String = "%.2f"): Pair<String, String> {
             return if (v != null)
-                if (v < 1000) Pair("$v", ascentUnit) else Pair(String.format("%.2f", v.toFloat() / 1000f), distanceUnit)
-            else empty
-        }
-
-        fun getDistanceForChart(v: Int?): Pair<String, String> {
-            return if (v != null)
-                if (v < 1000) Pair("$v", ascentUnit) else Pair(String.format("%.0f", v.toFloat() / 1000f), distanceUnit)
+                if (v < 1000) Pair("$v", ascentUnit) else Pair(String.format(format, v.toFloat() / 1000f), distanceUnit)
             else empty
         }
 
@@ -80,8 +75,8 @@ class MeasureUtil {
             else empty
         }
 
-        fun getSpeed(v: Double?): Pair<String, String> {
-            return if (v != null) Pair(String.format("%.1f", v), speedUnit) else empty
+        fun getSpeed(v: Float?, format: String = "%.1f"): Pair<String, String> {
+            return if (v != null) Pair(String.format(format, v), speedUnit) else empty
         }
 
         fun getHeartRate(v: Int?): Pair<String, String> {
@@ -92,8 +87,8 @@ class MeasureUtil {
             return if (v != null) Pair("$v", cadenceRateUnit) else empty
         }
 
-        fun getGrade(v: Double?): Pair<String, String> {
-            return if (v != null) Pair(String.format("%.1f", v), "%") else empty
+        fun getGrade(v: Float?, format: String = "%.1f"): Pair<String, String> {
+            return if (v != null) Pair(String.format(format, v), "%") else empty
         }
 
         fun getPercent(v: Float?): Pair<String, String> {
@@ -112,7 +107,7 @@ class MeasureUtil {
         }
 
         fun getFileSize(v: Int): String {
-            return String.format("%.1fk", v.toFloat() / 1000.0)
+            return String.format("%.1fk", v.toFloat() / 1000f)
         }
     }
 }
@@ -124,11 +119,46 @@ fun getText(value: Int, measurement: XMeasurement, showMeasurement: Boolean = tr
     XMeasurement.TIME -> MeasureUtil.getDuration(value)
 }
 
-fun getText(value: Double, type: FitListType, showMeasurement: Boolean = true) = when(type) {
+fun getTextForChart(value: Int, measurement: XMeasurement) = when(measurement) {
+    XMeasurement.DISTANCE -> MeasureUtil.getDistance(value, "%.0f").first
+    XMeasurement.TIME -> MeasureUtil.getDurationShort(value)
+}
+
+fun getTextForChart(value: Float, type: ChartType, showMeasurement: Boolean = false) = when(type) {
+    ChartType.DISTANCE -> MeasureUtil.getDistance(value.toInt(), "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_HEART_RATE -> MeasureUtil.getHeartRate(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_SPEED -> MeasureUtil.getSpeed(value, "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.ASCENT -> MeasureUtil.getDistance(value.toInt(), "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MOVING_TIME -> MeasureUtil.getDurationShort(value.toInt())
+    ChartType.MAX_HEART_RATE -> MeasureUtil.getHeartRate(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.NONE -> ""
+}
+
+fun getTextForChart(value: Int, type: ChartType, showMeasurement: Boolean = false) = when(type) {
+    ChartType.DISTANCE -> MeasureUtil.getDistance(value, "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_HEART_RATE -> MeasureUtil.getHeartRate(value).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_SPEED -> MeasureUtil.getSpeed(value.toFloat(), "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.ASCENT -> MeasureUtil.getDistance(value, "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MOVING_TIME -> MeasureUtil.getDurationShort(value)
+    ChartType.MAX_HEART_RATE -> MeasureUtil.getHeartRate(value).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.NONE -> ""
+}
+
+fun getTextForChart(value: Float, type: FitListType) = when(type) {
+    FitListType.SPEED -> MeasureUtil.getSpeed(value, "%.0f")
+    FitListType.HEART -> MeasureUtil.getHeartRate(value.toInt())
+    FitListType.CADENCE -> MeasureUtil.getCadence(value.toInt())
+    FitListType.GRADE -> MeasureUtil.getGrade(value, "%.0f")
+    FitListType.ALTITUDE -> MeasureUtil.getDistance(value.toInt(), "%.0f")
+    FitListType.TEMPERATURE -> MeasureUtil.getTemperature(value.toInt())
+}.first
+
+
+fun getText(value: Float, type: FitListType, showMeasurement: Boolean = true) = when(type) {
     FitListType.SPEED -> MeasureUtil.getSpeed(value)
     FitListType.HEART -> MeasureUtil.getHeartRate(value.toInt())
     FitListType.CADENCE -> MeasureUtil.getCadence(value.toInt())
     FitListType.GRADE -> MeasureUtil.getGrade(value)
     FitListType.ALTITUDE -> MeasureUtil.getDistance (value.toInt())
     FitListType.TEMPERATURE -> MeasureUtil.getTemperature(value.toInt())
-}.run { if(showMeasurement) pairToString() else this.first }
+}.run { if(showMeasurement) this.pairToString() else this.first }

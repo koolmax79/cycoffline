@@ -7,8 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
-import ru.koolmax.cycoffline.data.media.FitFile
 import ru.koolmax.cycoffline.data.media.FitListType
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.ui.statistics.ChartType
@@ -33,6 +31,7 @@ object ColorUtil {
             ChartType.MOVING_TIME -> LocalCustomColorsPalette.current.movingTime
             ChartType.AVG_HEART_RATE -> LocalCustomColorsPalette.current.heartColor
             ChartType.MAX_HEART_RATE -> LocalCustomColorsPalette.current.heartColor
+            ChartType.NONE -> throw Exception("")
         }
     }
 
@@ -49,40 +48,9 @@ object ColorUtil {
         }
 }
 
-@Composable
-fun getValueFormatter(type: ChartType) =
-    when (type) {
-        ChartType.DISTANCE -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getDistance(it.toInt()).first
-            })
-        ChartType.ASCENT -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getAscent(it.toInt()).first
-            })
-        ChartType.AVG_SPEED -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getSpeed(it).first
-            })
-        ChartType.MOVING_TIME -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getDuration(it.toInt())
-            })
-        ChartType.AVG_HEART_RATE -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getHeartRate(it.toInt()).first
-            })
-        ChartType.MAX_HEART_RATE -> HorizontalIndicatorProperties(
-            textStyle = MaterialTheme.typography.labelLarge,
-            contentBuilder = {
-                MeasureUtil.getHeartRate(it.toInt()).first
-            })
-    }
+fun interpolate(start: Float, end: Float, fraction: Float): Float {
+    return start + (end - start) * fraction
+}
 
 fun Iterable<Number>.minChart(): Pair<Double, Double> {
     val min = this.minWithOrNull( compareBy{ it.toDouble() } ) ?: 0
@@ -90,7 +58,7 @@ fun Iterable<Number>.minChart(): Pair<Double, Double> {
     return Pair(min.toDouble(), max.toDouble())
 }
 
-fun interpolateY(yValues: List<Double>, xValues: List<Int>, steps: Int): List<Double> {
+fun interpolateY(yValues: List<Float>, xValues: List<Int>, steps: Int): List<Float> {
     require(yValues.size == xValues.size) {
         "Lists must be of the same size"
     }
@@ -101,8 +69,8 @@ fun interpolateY(yValues: List<Double>, xValues: List<Int>, steps: Int): List<Do
     val minX = xValues.first()
     val maxX = xValues.last()
 
-    val stepSize = (maxX - minX).toDouble() / (steps - 1)
-    val interpolatedPoints = MutableList(steps) { 0.0 }
+    val stepSize = (maxX - minX).toFloat() / (steps - 1)
+    val interpolatedPoints = MutableList(steps) { 0f }
 
     var idx = 0
     var currentIndex = 0
@@ -115,9 +83,9 @@ fun interpolateY(yValues: List<Double>, xValues: List<Int>, steps: Int): List<Do
             currentIndex++
         }
 
-        val x0 = xValues[currentIndex].toDouble()
+        val x0 = xValues[currentIndex].toFloat()
         val y0 = yValues[currentIndex]
-        val x1 = if (currentIndex < xValues.size - 1) xValues[currentIndex + 1].toDouble() else x0
+        val x1 = if (currentIndex < xValues.size - 1) xValues[currentIndex + 1].toFloat() else x0
         val y1 = if (currentIndex < yValues.size - 1) yValues[currentIndex + 1] else y0
 
         val yInterp = if (x1 == x0) {

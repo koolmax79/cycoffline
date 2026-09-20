@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "ru.koolmax.cycoffline"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -65,13 +66,11 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
-    implementation(libs.mp.android.chart)
     implementation(libs.compose.runtime.livedata)
     implementation(libs.androidx.compose.material.icons)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.com.kizitonwose.calendar)
     implementation(libs.ui.text.google.fonts)
-    implementation(libs.ehsannarmani.charts)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

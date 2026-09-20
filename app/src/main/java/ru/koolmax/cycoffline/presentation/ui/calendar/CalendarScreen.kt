@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,9 +43,11 @@ import com.kizitonwose.calendar.core.atStartOfMonth
 import com.kizitonwose.calendar.core.daysOfWeek
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import ru.koolmax.cycoffline.R
+import ru.koolmax.cycoffline.data.FitStatisticItem
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.presentation.ui.workout.SessionValue
 import ru.koolmax.cycoffline.ui.theme.CycofflineTheme
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 import java.time.DayOfWeek
@@ -81,15 +84,7 @@ fun CalendarScreen(navController: NavController, viewModel: CalendarViewModel = 
 
     Column(modifier = Modifier.fillMaxWidth().padding( LocalSpacing.current.space100),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        InfoRow(stringResource(R.string.number_trips), statistic.count.toString())
-        InfoRow(stringResource(R.string.distance), MeasureUtil.getDistance(statistic.totalDistance).toList()
-            .joinToString(" "))
-        InfoRow(stringResource(R.string.ascent), MeasureUtil.getAscent(statistic.totalAscent).toList()
-            .joinToString(" "))
-        InfoRow("падение", MeasureUtil.getAscent(statistic.totalDescent).toList()
-            .joinToString(" "))
-        InfoRow(stringResource(R.string.totalMovingTime), MeasureUtil.getDuration(statistic.totalMovingTime).toList()
-            .joinToString(" "))
+        Info(statistic)
         HorizontalCalendar(
             state = state,
             modifier = Modifier.background(color = MaterialTheme.colorScheme.surface),
@@ -122,10 +117,19 @@ fun CalendarScreen(navController: NavController, viewModel: CalendarViewModel = 
 }
 
 @Composable
-fun InfoRow(name: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(text = name, style = MaterialTheme.typography.bodyLarge)
-        Text(text = value, style = MaterialTheme.typography.bodyLarge)
+fun Info(statistic: FitStatisticItem) {
+    with(statistic) {
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                SessionValue(description = stringResource(R.string.number_trips), value = statistic.count.toString())
+                SessionValue(description = stringResource(R.string.distance), value = MeasureUtil.getDistance(statistic.totalDistance))
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                SessionValue(description = stringResource(R.string.totalMovingTime), value = MeasureUtil.getDuration(statistic.totalMovingTime))
+                SessionValue(description = stringResource(R.string.ascent), value = MeasureUtil.getDistance(statistic.totalAscent))
+            }
+        }
     }
 }
 
@@ -194,28 +198,28 @@ private fun MonthHeader(calendarMonth: CalendarMonth)
             Text(
 //              modifier = Modifier.fillMaxWidth(),
                 text = calendarMonth.yearMonth.year.toString(),
-                fontStyle = MaterialTheme.typography.displayMedium.fontStyle,
-                fontSize = MaterialTheme.typography.displayMedium.fontSize,
+                fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 textAlign = TextAlign.Left,
-                fontWeight = MaterialTheme.typography.displayMedium.fontWeight
+                //fontWeight = MaterialTheme.typography.headlineMedium.fontWeight
             )
             Text(
                 modifier = Modifier.fillMaxWidth(),
                 text = calendarMonth.yearMonth.displayText(),
-                fontStyle = MaterialTheme.typography.displayMedium.fontStyle,
-                fontSize = MaterialTheme.typography.displayMedium.fontSize,
+                fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
+                fontSize = MaterialTheme.typography.headlineMedium.fontSize,
                 textAlign = TextAlign.Left,
-                fontWeight = MaterialTheme.typography.displayMedium.fontWeight
+                //fontWeight = MaterialTheme.typography.headlineMedium.fontWeight
                 )
             Row(modifier = Modifier.fillMaxWidth()) {
                 for (dayOfWeek in daysOfWeek) {
                     Text(
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center,
-                        fontStyle = MaterialTheme.typography.headlineMedium.fontStyle,
-                        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+                        fontStyle = MaterialTheme.typography.headlineSmall.fontStyle,
+                        fontSize = MaterialTheme.typography.headlineSmall.fontSize,
                         text = dayOfWeek.displayText(),
-                        fontWeight = MaterialTheme.typography.headlineMedium.fontWeight
+                        fontWeight = MaterialTheme.typography.headlineSmall.fontWeight
                     )
                 }
             }
@@ -239,7 +243,7 @@ fun Day(day: CalendarDay, fitSessionCount: Int, onClick: (CalendarDay) -> Unit) 
 
         BadgedBox(badge = {
             if(fitSessionCount > 0) {
-                Badge(containerColor = MaterialTheme.colorScheme.tertiaryContainer) {
+                Badge(containerColor = MaterialTheme.colorScheme.errorContainer) {
                     Text(text = fitSessionCount.toString(),
                         fontStyle = MaterialTheme.typography.titleSmall.fontStyle,
                         fontSize = MaterialTheme.typography.titleSmall.fontSize,
@@ -247,7 +251,6 @@ fun Day(day: CalendarDay, fitSessionCount: Int, onClick: (CalendarDay) -> Unit) 
                 }
             }
         }) {
-
             Text(text = day.date.dayOfMonth.toString(),
                 fontStyle = MaterialTheme.typography.titleLarge.fontStyle,
                 fontSize = MaterialTheme.typography.titleLarge.fontSize,

@@ -2,6 +2,7 @@ package ru.koolmax.cycoffline.presentation.ui.deviceList
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,10 +59,9 @@ fun ScanBLEScreen(navController: NavController, viewModel: DeviceListViewModel =
             IconButton(onClick = {
                 navController.popBackStack()
             }) {
-                ColoredIcon(
-                    modifier = Modifier.size(LocalIconSize.current.size100),
-                    drawable = R.drawable.arrow_back_24px,
-                    color = MaterialTheme.colorScheme.onSurface
+                Image(
+                    painter = painterResource(id = R.drawable.back_arrow),
+                    contentDescription = null
                 )
             }
             Text(text = "Сканирование", style =  MaterialTheme.typography.headlineMedium)

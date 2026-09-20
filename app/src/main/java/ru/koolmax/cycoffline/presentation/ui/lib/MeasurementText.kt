@@ -20,7 +20,7 @@ import ru.koolmax.cycoffline.data.media.XMeasurement
 import ru.koolmax.cycoffline.presentation.getText
 
 @Composable
-fun MeasurementText(value: Double,
+fun MeasurementText(value: Float,
                     measurementType: FitListType,
                     modifier: Modifier = Modifier,
                     color: Color = Color.Unspecified,

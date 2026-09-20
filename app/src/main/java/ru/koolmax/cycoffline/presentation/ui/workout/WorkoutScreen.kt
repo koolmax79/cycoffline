@@ -1,6 +1,7 @@
 package ru.koolmax.cycoffline.presentation.ui.workout
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,13 +53,12 @@ fun Tabs(tabs: List<BarItem>, pagerState: PagerState) {
         tabs.forEachIndexed { index, tab ->
             LeadingIconTab(
                 icon = {
-                    //Icon(painter = painterResource(id = tab.icon), contentDescription = "")
-                    ColoredIcon(
-                        drawable = tab.icon,
-                        color = LocalCustomColorsPalette.current.iconColorActive
+                    Image(
+                        painter = painterResource(tab.icon),
+                        contentDescription = null
                     )
-                       },
-                text = { Text(stringResource(tab.title)) },
+                },
+                text = { },
                 selected = pagerState.currentPage == index,
                 onClick = {
                     scope.launch {

@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.ui.theme
 
+import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,7 +46,7 @@ import ru.koolmax.cycoffline.presentation.ui.workout.WorkoutScreen
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppScaffold(startDestination: String, navigationState: NavigationState, viewModel: AppScaffoldViewModel = hiltViewModel()) {
-    val topBarState = rememberSaveable { (mutableStateOf(true)) }
+    val topBarState = rememberSaveable { (mutableStateOf(false)) }
     var bottomButtonList by remember { mutableStateOf(listOf<BarItem>() ) }
     val topTitle = rememberSaveable { mutableStateOf("") }
     val countNotDisplayedFit = remember { viewModel.fitSesNotDisplayedCount }.collectAsState()
@@ -74,17 +75,26 @@ fun AppScaffold(startDestination: String, navigationState: NavigationState, view
                 topBarState.value = false
                 bottomButtonList = BarItem.mainBottoms
             }
-/*
-            Route.Workout.route -> {
-                topBarState.value = false
-                bottomBarState.value = false
+
+            Screen.Workout.route -> {
+                bottomButtonList = BarItem.empty
             }
-            Route.ScanBLE.route -> {
-                topBarState.value = true
-                topTitle.value = "Поиск устройств"
-                bottomBarState.value = false
+            Screen.FitInfo.route -> {
+                bottomButtonList = BarItem.empty
             }
-*/
+            Screen.FitCharts.route -> {
+                bottomButtonList = BarItem.empty
+            }
+            Screen.FitStatistics.route -> {
+                bottomButtonList = BarItem.empty
+            }
+            /*
+                        Route.ScanBLE.route -> {
+                            topBarState.value = true
+                            topTitle.value = "Поиск устройств"
+                            bottomBarState.value = false
+                        }
+            */
         }
     }
 
@@ -94,8 +104,8 @@ fun AppScaffold(startDestination: String, navigationState: NavigationState, view
             BottomBar(navigationState, navBackStackEntry, bottomButtonList, countNotDisplayedFit)
         },
         topBar = {
-            //if(navController.graph.hierarchy)
-            //TopBar(navigationState.navHostController, topTitle.value)
+            if(topBarState.value)
+                TopBar(navigationState.navHostController, topTitle.value)
         }
     ) { padding ->
         NavHost(

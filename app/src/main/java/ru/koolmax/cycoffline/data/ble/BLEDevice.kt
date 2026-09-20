@@ -5,11 +5,13 @@ import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import no.nordicsemi.android.kotlin.ble.client.main.callback.ClientBleGatt
+import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
 import ru.koolmax.cycoffline.data.DeviceFile
 import ru.koolmax.cycoffline.data.DeviceFileStatus
 import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import java.io.File
+import java.util.UUID
 
 class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleGatt, val modem: YModem, val scope: CoroutineScope, val progressListener: DeviceFileProgressListener): AutoCloseable {
     lateinit var btGatt: ClientBleGatt
@@ -25,7 +27,7 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
                 val btGatt = ClientBleGatt.connect(context, device.address, scope)
                 //Log.i("cycoffline1", "gatt ${btGatt.isConnected.toString()}")
                 if (btGatt.isConnected) {
-                    progressListener.onConnect(device)
+                    progressListener.onConnect(device, getBatteryLevel(btGatt))
                     val modem =
                         YModem(btGatt.discoverServices(), scope, progressListener).apply { start() }
                     return BLEDevice(device, btGatt, modem, scope, progressListener)
@@ -35,6 +37,18 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
             catch (_: Exception) {
                 return null
             }
+        }
+
+        @SuppressLint("MissingPermission")
+        private suspend fun getBatteryLevel(btGatt: ClientBleGatt): Int {
+            val serviceUUID = UUID.fromString("0000180F-0000-1000-8000-00805F9B34FB")
+            val charCTRLUUID = UUID.fromString("00002A19-0000-1000-8000-00805F9B34FB")
+            btGatt.discoverServices().findService(serviceUUID)?.let {
+                it.findCharacteristic(charCTRLUUID)?.read()?.let {
+                    return it.toString().filterNot { it in "() " }.removePrefix("0x").hexToInt()
+                }
+            }
+            return -1
         }
     }
 

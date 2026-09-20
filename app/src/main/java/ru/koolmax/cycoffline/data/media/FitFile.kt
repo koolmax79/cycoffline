@@ -6,7 +6,7 @@ import ru.koolmax.cycoffline.data.HeartZone
 import ru.koolmax.cycoffline.data.HeartZoneInfo
 import ru.koolmax.cycoffline.presentation.ui.interpolateX
 import ru.koolmax.cycoffline.presentation.ui.interpolateY
-import ru.koolmax.cycoffline.presentation.ui.lib.ChartData
+import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartData
 import kotlin.collections.listOf
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -18,9 +18,9 @@ enum class FitListType { SPEED, HEART, CADENCE, GRADE, ALTITUDE, TEMPERATURE
 enum class XMeasurement { DISTANCE, TIME }
 enum class XPause { SHOW, HIDE }
 
-data class MonitoringChart(val min: Double, val max: Double, val yValues: List<Double>, val info: List<Pair<String, Double>>) {
+data class MonitoringChart(val min: Float, val max: Float, val yValues: List<Float>, val info: List<Pair<String, Float>>) {
     companion object {
-        fun create(yValues: List<Double>, info: List<Pair<String, Double>>) = MonitoringChart(yValues.min(), yValues.max(), yValues, info)
+        fun create(yValues: List<Float>, info: List<Pair<String, Float>>) = MonitoringChart(yValues.min(), yValues.max(), yValues, info)
     }
 }
 data class MonitoringData(val chartData: Map<FitListType, MonitoringChart> = mapOf(), val xValues: List<Int> = listOf())
@@ -34,7 +34,7 @@ data class Zone(val begin: Int, val end: Int, val zoneInfo: HeartZoneInfo, var h
 class FitFile(val info: FitInfo): RecordMesgListener {
     private val yInterCount = 1000
 
-    private data class MonitoringValues(var values: MutableList<Double>, var loaded: Boolean = false)
+    private data class MonitoringValues(var values: MutableList<Float>, var loaded: Boolean = false)
 
     val timeByMonitoring: List<Pair<FitListType, ChartData>> by lazy {
         val list = mutableListOf<Pair<FitListType, ChartData>>()
@@ -51,25 +51,33 @@ class FitFile(val info: FitInfo): RecordMesgListener {
         getTimeByMonitoring(heartValues.values)
     }
 
-    private fun getTimeByMonitoring(monitoringValues: List<Double>): ChartData {
-        val valuesWithoutPause = getRemovePauseByTime(monitoringValues, distanceValues).filter { it != 0.0 } //.run { if(removeZero) this.filter { it == 0.0 } else this }
+    private fun getTimeByMonitoring(monitoringValues: List<Float>): ChartData {
+        val valuesWithoutPause = getRemovePauseByTime(monitoringValues, distanceValues).filter { it != 0f } //.run { if(removeZero) this.filter { it == 0.0 } else this }
         val xMin = valuesWithoutPause.min().roundToInt()
         val xMax = valuesWithoutPause.max().roundToInt()
+        //Log.i("cycoffline1", "${xMin} : ${xMax}")
+        //Log.i("cycoffline1", "${monitoringValues.min()} : ${monitoringValues.max()}")
+
         val yValues = MutableList(xMax - xMin + 1) { 0 }
         valuesWithoutPause.forEach {
             val value = it.roundToInt() - xMin
-            yValues[value] = (yValues[value] ?: 0) + 1
+            yValues[value] = yValues[value] + 1
         }
-        return ChartData(yValues, xMin)
+
+        //if(yValues.size > (180-xMin))
+        //    for (x in  xMin..xMax step 5)
+        //        Log.i("cycoffline1", "${x+xMin} : ${yValues[x]}")
+
+        return ChartData.create(yValues = yValues, xMin = xMin)
     }
 
     private var distanceValues    = MutableList(info.timeCount) { 0 }
-    private var speedValues       = MonitoringValues(MutableList(info.timeCount) { 0.0 })
-    private var heartValues       = MonitoringValues(MutableList(info.timeCount) { 0.0 })
-    private var cadenceValues     = MonitoringValues(MutableList(info.timeCount) { 0.0 })
-    private var gradeValues       = MonitoringValues(MutableList(info.timeCount) { 0.0 })
-    private var altitudeValues    = MonitoringValues(MutableList(info.timeCount) { 0.0 })
-    private var temperatureValues = MonitoringValues(MutableList(info.timeCount) { 0.0 })
+    private var speedValues       = MonitoringValues(MutableList(info.timeCount) { 0f })
+    private var heartValues       = MonitoringValues(MutableList(info.timeCount) { 0f })
+    private var cadenceValues     = MonitoringValues(MutableList(info.timeCount) { 0f })
+    private var gradeValues       = MonitoringValues(MutableList(info.timeCount) { 0f })
+    private var altitudeValues    = MonitoringValues(MutableList(info.timeCount) { 0f })
+    private var temperatureValues = MonitoringValues(MutableList(info.timeCount) { 0f })
     private val monitoringList = listOf( Pair(FitListType.SPEED, speedValues),
         Pair(FitListType.HEART, heartValues),
         Pair(FitListType.CADENCE, cadenceValues),
@@ -128,15 +136,15 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 speedValues.values,
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxSpeed?.let { it * 3.6f }, speedValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgSpeed?.let { it * 3.6f }, speedValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(speedValues.values, distanceValues),
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxSpeed?.let { it * 3.6f }, speedValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgSpeed?.let { it * 3.6f }, speedValues.values, distanceValues))
                                 )
                             )
                         }
@@ -144,8 +152,8 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(speedValues.values, distanceValues),
                         listOf(
-                            Pair("max", getMax(info.session?.maxSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues)),
-                            Pair("avg", getAvg(info.session?.avgSpeed?.toDouble()?.let { it * 3.6 }, speedValues.values, distanceValues))
+                            Pair("max", getMax(info.session?.maxSpeed?.let { it * 3.6f }, speedValues.values, distanceValues)),
+                            Pair("avg", getAvg(info.session?.avgSpeed?.let { it * 3.6f }, speedValues.values, distanceValues))
                         )
                     )
                 }
@@ -157,17 +165,15 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 heartValues.values,
                                 listOf(
-                                    Pair("min", getMin(info.session?.minHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgHeartRate?.toDouble(), heartValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxHeartRate?.toFloat(), heartValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgHeartRate?.toFloat(), heartValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(heartValues.values, distanceValues),
                                 listOf(
-                                    Pair("min", getMin(info.session?.minHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgHeartRate?.toDouble(), heartValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxHeartRate?.toFloat(), heartValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgHeartRate?.toFloat(), heartValues.values, distanceValues))
                                 )
                             )
                         }
@@ -175,9 +181,8 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(heartValues.values, distanceValues),
                         listOf(
-                            Pair("min", getMin(info.session?.minHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                            Pair("max", getMax(info.session?.maxHeartRate?.toDouble(), heartValues.values, distanceValues)),
-                            Pair("avg", getAvg(info.session?.avgHeartRate?.toDouble(), heartValues.values, distanceValues))
+                            Pair("max", getMax(info.session?.maxHeartRate?.toFloat(), heartValues.values, distanceValues)),
+                            Pair("avg", getAvg(info.session?.avgHeartRate?.toFloat(), heartValues.values, distanceValues))
                         )
                     )
                 }
@@ -189,15 +194,15 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 cadenceValues.values,
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxCadence?.toDouble(), cadenceValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgCadence?.toDouble(), cadenceValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxCadence?.toFloat(), cadenceValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgCadence?.toFloat(), cadenceValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(cadenceValues.values, distanceValues),
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxCadence?.toDouble(), cadenceValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgCadence?.toDouble(), cadenceValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxCadence?.toFloat(), cadenceValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgCadence?.toFloat(), cadenceValues.values, distanceValues))
                                 )
                             )
                         }
@@ -205,8 +210,8 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(cadenceValues.values, distanceValues),
                         listOf(
-                            Pair("max", getMax(info.session?.maxCadence?.toDouble(), cadenceValues.values, distanceValues)),
-                            Pair("avg", getAvg(info.session?.avgCadence?.toDouble(), cadenceValues.values, distanceValues))
+                            Pair("max", getMax(info.session?.maxCadence?.toFloat(), cadenceValues.values, distanceValues)),
+                            Pair("avg", getAvg(info.session?.avgCadence?.toFloat(), cadenceValues.values, distanceValues))
                         )
                     )
                 }
@@ -218,15 +223,15 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 gradeValues.values,
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxPosGrade?.toDouble(), gradeValues.values, distanceValues)),
-                                    Pair("min", getMin(info.session?.maxNegGrade?.toDouble(), gradeValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxPosGrade, gradeValues.values, distanceValues)),
+                                    Pair("min", getMin(info.session?.maxNegGrade, gradeValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(gradeValues.values, distanceValues),
                                 listOf(
-                                    Pair("max", getMax(info.session?.maxPosGrade?.toDouble(), gradeValues.values, distanceValues)),
-                                    Pair("min", getMin(info.session?.maxNegGrade?.toDouble(), gradeValues.values, distanceValues))
+                                    Pair("max", getMax(info.session?.maxPosGrade, gradeValues.values, distanceValues)),
+                                    Pair("min", getMin(info.session?.maxNegGrade, gradeValues.values, distanceValues))
                                 )
                             )
                         }
@@ -234,8 +239,8 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(gradeValues.values, distanceValues),
                         listOf(
-                            Pair("max", getMax(info.session?.maxPosGrade?.toDouble(), gradeValues.values, distanceValues)),
-                            Pair("min", getMin(info.session?.maxNegGrade?.toDouble(), gradeValues.values, distanceValues))
+                            Pair("max", getMax(info.session?.maxPosGrade, gradeValues.values, distanceValues)),
+                            Pair("min", getMin(info.session?.maxNegGrade, gradeValues.values, distanceValues))
                         )
                     )
                 }
@@ -247,17 +252,17 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 altitudeValues.values,
                                 listOf(
-                                    Pair("min", getMin(info.session?.minAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgAltitude?.toDouble(), altitudeValues.values, distanceValues))
+                                    Pair("min", getMin(info.session?.minAltitude, altitudeValues.values, distanceValues)),
+                                    Pair("max", getMax(info.session?.maxAltitude, altitudeValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgAltitude, altitudeValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(altitudeValues.values, distanceValues),
                                 listOf(
-                                    Pair("min", getMin(info.session?.minAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgAltitude?.toDouble(), altitudeValues.values, distanceValues))
+                                    Pair("min", getMin(info.session?.minAltitude, altitudeValues.values, distanceValues)),
+                                    Pair("max", getMax(info.session?.maxAltitude, altitudeValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgAltitude, altitudeValues.values, distanceValues))
                                 )
                             )
                         }
@@ -265,9 +270,9 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(altitudeValues.values, distanceValues),
                         listOf(
-                            Pair("min", getMin(info.session?.minAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                            Pair("max", getMax(info.session?.maxAltitude?.toDouble(), altitudeValues.values, distanceValues)),
-                            Pair("avg", getAvg(info.session?.avgAltitude?.toDouble(), altitudeValues.values, distanceValues))
+                            Pair("min", getMin(info.session?.minAltitude, altitudeValues.values, distanceValues)),
+                            Pair("max", getMax(info.session?.maxAltitude, altitudeValues.values, distanceValues)),
+                            Pair("avg", getAvg(info.session?.avgAltitude, altitudeValues.values, distanceValues))
                         )
                     )
                 }
@@ -279,17 +284,17 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                             XPause.SHOW -> MonitoringChart.create(
                                 temperatureValues.values,
                                 listOf(
-                                    Pair("min", getMin(info.session?.minTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgTemperature?.toDouble(), temperatureValues.values, distanceValues))
+                                    Pair("min", getMin(info.session?.minTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                                    Pair("max", getMax(info.session?.maxTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgTemperature?.toFloat(), temperatureValues.values, distanceValues))
                                 )
                             )
                             XPause.HIDE -> MonitoringChart.create(
                                 getRemovePauseByTime(temperatureValues.values, distanceValues),
                                 listOf(
-                                    Pair("min", getMin(info.session?.minTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                                    Pair("max", getMax(info.session?.maxTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                                    Pair("avg", getAvg(info.session?.avgTemperature?.toDouble(), temperatureValues.values, distanceValues))
+                                    Pair("min", getMin(info.session?.minTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                                    Pair("max", getMax(info.session?.maxTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                                    Pair("avg", getAvg(info.session?.avgTemperature?.toFloat(), temperatureValues.values, distanceValues))
                                 )
                             )
                         }
@@ -297,9 +302,9 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                     XMeasurement.DISTANCE -> MonitoringChart.create(
                         getMonitoringByDistance(temperatureValues.values, distanceValues),
                         listOf(
-                            Pair("min", getMin(info.session?.minTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                            Pair("max", getMax(info.session?.maxTemperature?.toDouble(), temperatureValues.values, distanceValues)),
-                            Pair("avg", getAvg(info.session?.avgTemperature?.toDouble(), temperatureValues.values, distanceValues))
+                            Pair("min", getMin(info.session?.minTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                            Pair("max", getMax(info.session?.maxTemperature?.toFloat(), temperatureValues.values, distanceValues)),
+                            Pair("avg", getAvg(info.session?.avgTemperature?.toFloat(), temperatureValues.values, distanceValues))
                         )
                     )
                 }
@@ -307,7 +312,7 @@ class FitFile(val info: FitInfo): RecordMesgListener {
         }
     }
 
-    private fun getMax(value: Double?, monitoringValues: List<Double>, distanceValues: List<Int>): Double {
+    private fun getMax(value: Float?, monitoringValues: List<Float>, distanceValues: List<Int>): Float {
         if(value != null) return value
         var start = 0
         return monitoringValues.filterIndexed { idx, itm ->
@@ -319,7 +324,7 @@ class FitFile(val info: FitInfo): RecordMesgListener {
         }.max()
     }
 
-    private fun getAvg(value: Double?, monitoringValues: List<Double>, distanceValues: List<Int>): Double {
+    private fun getAvg(value: Float?, monitoringValues: List<Float>, distanceValues: List<Int>): Float {
         if(value != null) return value
         var start = 0
         return monitoringValues.filterIndexed { idx, itm ->
@@ -328,10 +333,10 @@ class FitFile(val info: FitInfo): RecordMesgListener {
                 true
             }
             else false
-        }.average()
+        }.average().toFloat()
     }
 
-    private fun getMin(value: Double?, monitoringValues: List<Double>, distanceValues: List<Int>): Double {
+    private fun getMin(value: Float?, monitoringValues: List<Float>, distanceValues: List<Int>): Float {
         if(value != null) return value
         var start = 0
         return monitoringValues.filterIndexed { idx, itm ->
@@ -343,11 +348,11 @@ class FitFile(val info: FitInfo): RecordMesgListener {
         }.min()
     }
 
-    private fun getMonitoringByDistance(monitoringValues: List<Double>, distanceValues: List<Int>): List<Double>{
+    private fun getMonitoringByDistance(monitoringValues: List<Float>, distanceValues: List<Int>): List<Float>{
         return interpolateY(monitoringValues, distanceValues, min(yInterCount, distanceValues.size))
     }
 
-    private fun getRemovePauseByTime(monitoringValues: List<Double>, distanceValues: List<Int>): List<Double>{
+    private fun getRemovePauseByTime(monitoringValues: List<Float>, distanceValues: List<Int>): List<Float>{
         var previousDistance = 0
         return monitoringValues.filterIndexed { idx, itm -> (distanceValues[idx]!=0 && distanceValues[idx]!=previousDistance).also { previousDistance = distanceValues[idx] } }
     }
@@ -357,30 +362,30 @@ class FitFile(val info: FitInfo): RecordMesgListener {
             val x = (it.timestamp.timestamp - info.timestampStart).toInt()
             //if(x < 1000)
             //    Log.i("cycoffline1", "${x.toString()} ${it.distance}")
-            distanceValues[x] = it.distance.roundToInt()
+            distanceValues[x] = (it.distance ?: 0f).roundToInt()
             if (it.speed != null) {
-                speedValues.values[x] = it.speed * 3.6
+                speedValues.values[x] = it.speed * 3.6f
                 speedValues.loaded = true
             }
             if (it.heartRate != null && it.heartRate != 0.toShort()) {
-                heartValues.values[x] = it.heartRate.toDouble()
+                heartValues.values[x] = it.heartRate.toFloat()
                 heartValues.loaded = true
             }
 
             if (it.cadence != null) {
-                cadenceValues.values[x] = it.cadence.toDouble()
+                cadenceValues.values[x] = it.cadence.toFloat()
                 cadenceValues.loaded = true
             }
             if (it.altitude != null) {
-                altitudeValues.values[x] = it.altitude.toDouble()
+                altitudeValues.values[x] = it.altitude.toFloat()
                 altitudeValues.loaded = true
             }
             if (it.grade != null) {
-                gradeValues.values[x] = it.grade.toDouble()
+                gradeValues.values[x] = it.grade.toFloat()
                 gradeValues.loaded = true
             }
             if (it.temperature != null) {
-                temperatureValues.values[x] = it.temperature.toDouble()
+                temperatureValues.values[x] = it.temperature.toFloat()
                 temperatureValues.loaded = true
             }
         }
@@ -404,7 +409,7 @@ class FitFile(val info: FitInfo): RecordMesgListener {
     fun getHeartZone(heartZone: HeartZone): List<Zone> {
         return heartZone.list.map { info -> Zone(info.min, info.max, info,
             timeByHeart.yValues.filterIndexed { xIdx, y ->
-                info.inZone(timeByHeart.getX(xIdx).toShort())
+                info.inZone(timeByHeart.xValues[xIdx].toShort())
             }.sum() )
         }
     }

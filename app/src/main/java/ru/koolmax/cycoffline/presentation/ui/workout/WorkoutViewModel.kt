@@ -16,7 +16,7 @@ import ru.koolmax.cycoffline.data.media.MonitoringData
 import ru.koolmax.cycoffline.data.media.XMeasurement
 import ru.koolmax.cycoffline.data.media.XPause
 import ru.koolmax.cycoffline.data.media.Zone
-import ru.koolmax.cycoffline.presentation.ui.lib.ChartData
+import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartData
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +25,7 @@ class WorkoutViewModel @Inject constructor(private val fileRepository: FileRepos
                                            private val settingsRepository: SettingsDBRepository
 ): ViewModel() {
 
-    val xMeasurementMode = MutableStateFlow(XMeasurement.TIME)
+    val xMeasurementMode = MutableStateFlow(XMeasurement.DISTANCE)
     val xPauseMode = MutableStateFlow(XPause.SHOW)
     val fitSessionItem = MutableStateFlow(FitSessionItem())
     val heartZone = MutableStateFlow(listOf<Zone>())

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -72,7 +74,10 @@ fun FitListScreen(navController: NavController, viewModel: FitViewModel = hiltVi
         FloatingActionButton(onClick = {
             openDocumentLauncher.launch("application/octet-stream")
         }) {
-            Icon(Icons.Filled.Add, "Add fit file")
+            Image(
+                painter = painterResource(id = R.drawable.add_file),
+                contentDescription = null
+            )
         }
     }) { paddingValues ->
         LazyColumn(modifier = Modifier.fillMaxSize()) {

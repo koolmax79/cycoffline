@@ -1,15 +1,21 @@
 package ru.koolmax.cycoffline.presentation.ui.workout
 
+import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,18 +32,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ir.ehsannarmani.compose_charts.RowChart
-import ir.ehsannarmani.compose_charts.models.BarProperties
-import ir.ehsannarmani.compose_charts.models.Bars
 import ru.koolmax.cycoffline.R
-import ru.koolmax.cycoffline.data.HeartZone
-import ru.koolmax.cycoffline.data.HeartZoneInfo
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.data.media.Zone
 import ru.koolmax.cycoffline.presentation.MeasureUtil
@@ -50,112 +55,92 @@ fun WorkoutInfoScreen(viewModel: WorkoutViewModel) {
     val session by remember { viewModel.fitSessionItem }.collectAsState()
     val heartZone by remember { viewModel.heartZone }.collectAsState()
 
+    when(LocalConfiguration.current.orientation) {
+
+        Configuration.ORIENTATION_PORTRAIT -> {
+            WorkoutInfoScreenPortrait(session, heartZone)
+        }
+
+        Configuration.ORIENTATION_LANDSCAPE -> {
+            WorkoutInfoScreenLandscape(session, heartZone)
+        }
+    }
+}
+
+@Composable
+fun WorkoutInfoScreenPortrait(session: FitSessionItem, heartZone: List<Zone>) {
     Column(modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        WorkoutInfo(session)
-        //HeartZones3(heartZone)
-        HeartZones2(heartZone)
-        //HeartZones(heartZone)
+        WorkoutInfo(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100), session = session)
+        HeartZones(modifier = Modifier.padding(LocalSpacing.current.space100), zone = heartZone)
     }
 }
 
 @Composable
-fun WorkoutInfo(itm: FitSessionItem) {
-    with(itm) {
-        SessionValue("время старта", MeasureUtil.getDateTime(startTime), modifier = Modifier.fillMaxWidth())
-        Row(modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                SessionValue(stringResource(R.string.elapsedTime), MeasureUtil.getDuration(totalElapsedTime))
-                SessionValue(stringResource(R.string.distance), MeasureUtil.getDistance(totalDistance))
-                SessionValue("средняя скорость", MeasureUtil.getSpeed(avgSpeed))
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                SessionValue(stringResource(R.string.movingTime), MeasureUtil.getDuration(totalMovingTime))
-                SessionValue("набор высоты", MeasureUtil.getDistance(totalAscent))
-                SessionValue("максимальная скорость", MeasureUtil.getSpeed(maxSpeed))
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround) {
-            SessionValue("средняя ЧСС", MeasureUtil.getHeartRate(avgHeartRate))
-        }
-        Row(modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                SessionValue("min ЧСС", MeasureUtil.getHeartRate(minHeartRate))
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                SessionValue("max ЧСС", MeasureUtil.getHeartRate(maxHeartRate))
+fun WorkoutInfoScreenLandscape(session: FitSessionItem, heartZone: List<Zone>) {
+    Row(modifier = Modifier.fillMaxWidth()) {
+        WorkoutInfo(modifier = Modifier.width(IntrinsicSize.Max).padding(LocalSpacing.current.space100), session = session)
+        HeartZones(modifier = Modifier.padding(LocalSpacing.current.space100), zone = heartZone)
+    }
+}
+
+@Composable
+fun WorkoutInfo(modifier: Modifier = Modifier, session: FitSessionItem) {
+    with(session) {
+        Column(modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            SessionValue(modifier = Modifier.fillMaxWidth(),"время старта", MeasureUtil.getDateTime(startTime))
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    SessionValue(description = stringResource(R.string.elapsedTime), value = MeasureUtil.getDuration(totalElapsedTime))
+                    SessionValue(description = stringResource(R.string.distance), value = MeasureUtil.getDistance(totalDistance))
+                    SessionValue(description = "средняя скорость", value = MeasureUtil.getSpeed(avgSpeed?.toFloat()))
+                    SessionValue(description = "средняя ЧСС", value = MeasureUtil.getHeartRate(avgHeartRate))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    SessionValue(description = stringResource(R.string.movingTime), value = MeasureUtil.getDuration(totalMovingTime))
+                    SessionValue(description = "набор высоты", value = MeasureUtil.getDistance(totalAscent))
+                    SessionValue(description = "максимальная скорость", value = MeasureUtil.getSpeed(maxSpeed?.toFloat()))
+                    SessionValue(description = "max ЧСС", value = MeasureUtil.getHeartRate(maxHeartRate))
+                }
             }
         }
     }
 }
 
 @Composable
-fun SessionValue(description: String, value: String, modifier: Modifier = Modifier) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.headlineLarge)
-        Text(text = description, style = MaterialTheme.typography.labelSmall)
+fun SessionValue(modifier: Modifier = Modifier, description: String, value: String) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = value, style = MaterialTheme.typography.headlineLarge)
+            Text(text = description, style = MaterialTheme.typography.labelSmall)
+        }
     }
 }
 
 @Composable
-fun SessionValue(description: String, value: Pair<String, String>) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun SessionValue(modifier: Modifier = Modifier, description: String, value: Pair<String, String>) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(text = value.first, style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(end = 2.dp))
-            Text(text = value.second, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 2.dp))
+            Text(style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(end = 2.dp), text = buildAnnotatedString {
+                append(value.first)
+                withStyle(style = MaterialTheme.typography.bodySmall.toSpanStyle()) {
+                    append(value.second)
+                }
+            })
         }
         Text(text = description, style = MaterialTheme.typography.labelSmall)
     }
 }
 
 @Composable
-fun HeartZones(zone: List<Zone>) {
-    if(zone.isNotEmpty()) {
-/*
-        zone.forEach {
-            Log.i("cycoffline1", "${it.begin} ${it.heartSum.toString()}")
-        }
-*/
-        val data = zone.map { zone ->
-            Bars(
-                label = zone.begin.toString(),
-                values = listOf(
-                    Bars.Data(label = "ЧСС", value = zone.heartSum.toDouble(), color = SolidColor(LocalCustomColorsPalette.current.getHeartZoneColor(zone.zoneInfo.idx)))
-                )
-            )
-        }
-        RowChart(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 22.dp),
-            data = data,
-            //barProperties = BarProperties(
-            //    radius = Bars.Data.Radius.Rectangle(topRight = 6.dp, topLeft = 6.dp),
-            //    spacing = 3.dp,
-            //    strokeWidth = 20.dp
-            //),
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            ),
-        )
-        //val max = zone.maxOf { it.second }
-        //val sum = zone.sumOf { it.second }
-        //Column(modifier = Modifier.fillMaxWidth()) {
-        //    zone.forEach {
-        //        Zone(it, sum)
-        //    }
-        //}
-    }
-}
-
-@Composable
-fun HeartZones2(zone: List<Zone>) {
+fun HeartZones(modifier: Modifier = Modifier, zone: List<Zone>) {
     if(zone.isNotEmpty()) {
         val max = zone.maxOf { it.heartSum }
         val sum = zone.sumOf { it.heartSum }
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = modifier) {
             zone.reversed().forEach {
                 Zone(it, sum)
             }

@@ -48,6 +48,7 @@ class XOSSFile(private val file: String, private val progressListener: DeviceFil
                 progressListener.onBegin(file, fileSize)
                 nextState()
                 mutex.unlock()
+                //Log.i("FitOpener3", "fileSize = ${buf.toHex()}")
                 //Log.i("FitOpener3", "fileSize = ${fileSize.toString()}")
             }
             Mode.BODY -> {
@@ -74,7 +75,7 @@ class XOSSFile(private val file: String, private val progressListener: DeviceFil
         val requestBuf = file.toByteArray().toMutableList()
         requestBuf.add(0, 0x05)
         requestBuf.add(YModem.calcCRC(requestBuf))
-        Log.i("FitOpener3", requestBuf.toByteArray().toHex())
+        //Log.i("FitOpener3", requestBuf.toByteArray().toHex())
         return requestBuf.toByteArray()
     }
 

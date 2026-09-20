@@ -39,7 +39,7 @@ class ServiceRepository @Inject constructor(private val context: Context) {
     fun addToLoad(file: FileStatus) {
         synchronized(lock) {
             _loadingFileList.add(file)
-            Log.i("cycoffline1", "add to queue ${_loadingFileList.size} ${serviceRun.toString()}")
+            //Log.i("cycoffline1", "add to queue ${_loadingFileList.size} ${serviceRun.toString()}")
             if(!serviceRun) {
                 serviceRun = true
                 val intent = Intent(context, DeviceFileService::class.java)

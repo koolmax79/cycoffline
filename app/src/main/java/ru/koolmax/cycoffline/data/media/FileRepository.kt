@@ -43,8 +43,6 @@ class FileRepository @Inject constructor(private val context: Context) {
             decode.read(it, broadcast)
         }
 
-        //Log.i("cycoffline1", info.timeCount.toString())
-
         file.inputStream().use {
             val records = FitFile(info)
             val decode = Decode()

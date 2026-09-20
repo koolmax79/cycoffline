@@ -2,7 +2,9 @@ package ru.koolmax.cycoffline.presentation.ui.deviceList
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -91,7 +93,7 @@ class DeviceListViewModel @Inject constructor(
     fun getInfoFromDevice(deviceInfo: DeviceInfo) {
         viewModelScope.launch {
             val listener = object : DeviceFileProgressListener() {
-                override fun onConnect(device: DeviceInfo) {
+                override fun onConnect(device: DeviceInfo, batteryLevel: Int) {
                     serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.CONNECTED))
                 }
 

@@ -25,11 +25,8 @@ class BLEDeviceRepository @Inject constructor(private val context: Context) {
         //Log.i("FitOpener3", "start scan")
         val settings = BleScannerSettings(includeStoredBondedDevices = false)
         val aggregator = BleScanAggregator()
-        //BleScannerSettings
         BleScanner(context).scan(settings = settings)
             .map {
-               //it.data.rssi
-                //Log.i("cycoffline1", "${it.device.address} ${it.data!!.timestampNanos}")
                 onList(aggregator.aggregate(it))
             } //Add new device and return an aggregated list
             //.onEach {

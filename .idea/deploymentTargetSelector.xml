@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-06-08T11:56:56.591251382Z">
+        <DropdownSelection timestamp="2026-09-15T13:40:31.304509777Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/koolmax/.android/avd/Pixel_8_API_33.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/koolmax/.android/avd/Pixel_8.avd" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -47,6 +47,17 @@
         <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="main">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-06-08T11:56:56.591251382Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/koolmax/.android/avd/Pixel_8_API_33.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="Greeting">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-06-08T11:56:56.591251382Z">
           <Target type="DEFAULT_BOOT">

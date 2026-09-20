@@ -1,28 +1,27 @@
 package ru.koolmax.cycoffline.presentation.ui.statistics
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import no.nordicsemi.android.kotlin.ble.core.ServerDevice
 import ru.koolmax.cycoffline.data.db.FitConverter
 import ru.koolmax.cycoffline.data.db.FitRepository
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.data.FitStatisticItem
+import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisType
 import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
-import kotlin.ranges.rangeTo
 
-enum class ChartType(val code : Int, val text: String) {
-    DISTANCE(1, "Дистанция"),
-    AVG_HEART_RATE(2, "Средняя ЧСС"),
-    AVG_SPEED(3, "Средняя скорость"),
-    ASCENT(4, "Подъем"),
-    MOVING_TIME(5, "Время в движении"),
-    MAX_HEART_RATE(6, "Максимальная ЧСС"),
+enum class ChartType(val code: Int, val text: String, val axisType: AxisType) {
+    DISTANCE(1, "Дистанция", AxisType.INT),
+    AVG_HEART_RATE(2, "Средняя ЧСС", AxisType.INT),
+    AVG_SPEED(3, "Средняя скорость", AxisType.INT),
+    ASCENT(4, "Подъем", AxisType.INT),
+    MOVING_TIME(5, "Время в движении", AxisType.TIME),
+    MAX_HEART_RATE(6, "Максимальная ЧСС", AxisType.INT),
+    NONE(0, "", AxisType.INT)
 }
 
 @HiltViewModel

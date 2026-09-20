@@ -151,6 +151,7 @@ data class CustomColorsPalette(
         ChartType.ASCENT -> ascentColor
         ChartType.MOVING_TIME -> movingTime
         ChartType.MAX_HEART_RATE -> heartColor
+        ChartType.NONE -> throw Exception()
     }
 }
 
