@@ -37,12 +37,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import dagger.Module
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.navigation.Screen
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.getText
 import ru.koolmax.cycoffline.presentation.getTextForChart
-import ru.koolmax.cycoffline.presentation.ui.calendar.Info
+import ru.koolmax.cycoffline.presentation.ui.calendar.InfoRow
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.barChart.Bars
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.barChart.BarChart
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.GridProperties
@@ -93,7 +94,7 @@ fun StatisticsScreen(navController: NavController, viewModel: StatisticsViewMode
 
     Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Info(sessionStatistic)
+        InfoRow(modifier = Modifier.fillMaxWidth(), statistic = sessionStatistic)
 
         DataChart(modifier = Modifier.fillMaxWidth().padding(top = LocalSpacing.current.space25, bottom = LocalSpacing.current.space25),
             fitSessionList, chartTypeState.value, onClick = {

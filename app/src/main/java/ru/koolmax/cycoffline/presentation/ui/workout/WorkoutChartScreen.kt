@@ -137,7 +137,6 @@ fun WorkoutChartScreenLandscape(viewModel: WorkoutViewModel, monitoringData: Mon
 
 @Composable
 fun Chart(modifier: Modifier = Modifier, type: FitListType, xMeasurement: XMeasurement, fitRecords: MonitoringChart, xValues: List<Int>, heartZone: List<Zone>) {
-
     val chartInfo = CharItem.list.getValue(type)
     val lineColor = ColorUtil.getColor(type)
     val heartZoneColor = LocalCustomColorsPalette.current.heartZoneColor
