@@ -1,5 +1,7 @@
 package ru.koolmax.cycoffline.presentation.ui.settings
 
+import android.content.pm.ActivityInfo
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,6 +47,7 @@ import ru.koolmax.cycoffline.presentation.DateTimeUtil
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
 import ru.koolmax.cycoffline.presentation.ui.lib.DatePickerModal
 import ru.koolmax.cycoffline.presentation.ui.lib.HorizontalPicker
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.presentation.ui.workout.getTextHeartRate
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
@@ -54,15 +57,16 @@ import kotlin.collections.isNotEmpty
 
 @Composable
 fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = hiltViewModel()) {
-
     val birthday = remember { viewModel.birthday }.collectAsState()
     val gender = remember { viewModel.gender }.collectAsState()
+    val weight = remember { mutableIntStateOf(viewModel.weight.value) }
     val autoHR = remember { viewModel.autoHR }.collectAsState()
     val heartZone = remember { viewModel.heartZone }.collectAsState()
-    //val autoMaxHR = remember { viewModel.autoMaxHR }.collectAsState()
-
-    Column(modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally) {
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         DatePickerFieldToModal(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100), birthday.value, {
             viewModel.setBirthday(it)
         })
@@ -71,11 +75,20 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
             viewModel.setGender(it)
         })
 
-        Row(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
+        HorizontalPicker(modifier = Modifier.fillMaxWidth().padding(top = LocalSpacing.current.space100), min = 30, max = 150, weight, 70)
+        Text(text = "вес", style = MaterialTheme.typography.labelSmall)
+        LaunchedEffect(weight.intValue) {
+            viewModel.setWeight(weight.intValue)
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End) {
+            horizontalArrangement = Arrangement.End
+        ) {
             Text(text = "Автоматический режим", style = MaterialTheme.typography.bodyLarge)
-            Switch(modifier = Modifier.padding(horizontal = LocalSpacing.current.space100),
+            Switch(
+                modifier = Modifier.padding(horizontal = LocalSpacing.current.space100),
                 checked = autoHR.value,
                 onCheckedChange = {
                     viewModel.setAutoHR(!autoHR.value)
@@ -83,7 +96,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
             )
         }
 
-        if(autoHR.value)
+        if (autoHR.value)
             Text(text = heartZone.value.defaultMaxHR.toString(), style = LocalTextStyle.current)
         else {
             val maxHRState = remember { mutableIntStateOf(viewModel.heartZone.value.maxHR) }

@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.calendar
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,6 +53,7 @@ import ru.koolmax.cycoffline.data.FitStatisticItem
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.presentation.ui.workout.SessionValue
 import ru.koolmax.cycoffline.presentation.ui.workout.TabsContent
 import ru.koolmax.cycoffline.presentation.ui.workout.TabsLeft
@@ -81,7 +83,7 @@ fun CalendarScreen(navController: NavController, viewModel: CalendarViewModel = 
         firstVisibleMonth = currentMonth,
         firstDayOfWeek = firstDayOfWeek
     )
-
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     if(showDialog.value) {
         WorkoutListDialog(sessionList.value,
             setShowDialog = {
@@ -91,35 +93,18 @@ fun CalendarScreen(navController: NavController, viewModel: CalendarViewModel = 
         } )
     }
 
-    when(LocalConfiguration.current.orientation) {
-        Configuration.ORIENTATION_PORTRAIT -> {
-            Column {
-                InfoRow(modifier = Modifier.fillMaxWidth(), statistic = statistic)
-                CalendarScreenPortrait(modifier = Modifier.fillMaxWidth(),
-                    viewModel, fitSessionList, calendarState, onClick = {
-                        navController.navigate(it)
-                    },
-                    onShowList = {
-                        sessionList.value = it
-                        showDialog.value = true
-                    }
-                )
+    Column {
+        InfoRow(modifier = Modifier.fillMaxWidth(), statistic = statistic)
+        CalendarScreenPortrait(
+            modifier = Modifier.fillMaxWidth(),
+            viewModel, fitSessionList, calendarState, onClick = {
+                navController.navigate(it)
+            },
+            onShowList = {
+                sessionList.value = it
+                showDialog.value = true
             }
-        }
-        Configuration.ORIENTATION_LANDSCAPE -> {
-            Row {
-                InfoColumn(statistic = statistic)
-                CalendarScreenLandscape(modifier = Modifier.fillMaxHeight(),
-                    viewModel, fitSessionList, calendarState, onClick = {
-                        navController.navigate(it)
-                    },
-                    onShowList = {
-                        sessionList.value = it
-                        showDialog.value = true
-                    }
-                )
-            }
-        }
+        )
     }
 }
 
@@ -152,37 +137,6 @@ fun CalendarScreenPortrait(modifier: Modifier = Modifier, viewModel: CalendarVie
         }
     )
 }
-
-@Composable
-fun CalendarScreenLandscape(modifier: Modifier = Modifier, viewModel: CalendarViewModel, fitSessionList: Map<LocalDate, List<FitSessionItem>>, calendarState: CalendarState, onClick: (String) -> Unit, onShowList: (List<FitSessionItem>) -> Unit) {
-    HorizontalCalendar(
-        state = calendarState,
-        modifier = modifier.padding( LocalSpacing.current.space100).background(color = MaterialTheme.colorScheme.surface),
-        dayContent = {
-            val list = fitSessionList.getOrDefault(it.date, listOf())
-                Day(it, list.size, onClick = {
-                    if(list.count() > 0) {
-                        onShowList(list)
-                    }
-                    if(list.count() == 1)  {
-                        onClick(Screen.Workout.route.replace(
-                            "{fit}",
-                            list.first().fileName
-                        )
-                        )
-                    }
-                })
-            },
-        monthHeader = {
-            viewModel.loadFitSessionList(
-                calendarState.firstVisibleMonth.yearMonth.atStartOfMonth(),
-                calendarState.firstVisibleMonth.yearMonth.atEndOfMonth()
-            )
-            MonthHeader(it)
-        }
-    )
-}
-
 
 @Composable
 fun InfoRow(modifier: Modifier = Modifier, statistic: FitStatisticItem) {

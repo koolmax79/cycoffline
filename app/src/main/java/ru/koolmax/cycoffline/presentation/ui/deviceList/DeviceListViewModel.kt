@@ -47,7 +47,7 @@ class DeviceListViewModel @Inject constructor(
         serviceRepository.deviceStatus) { savedList, status ->
         savedList.map {
             if(it.address == status.device.address)
-                DeviceStatus(it, status.status)
+                DeviceStatus(it, status.status, status.batteryLevel)
             else
                 DeviceStatus(it)
         }
@@ -92,17 +92,21 @@ class DeviceListViewModel @Inject constructor(
 
     fun getInfoFromDevice(deviceInfo: DeviceInfo) {
         viewModelScope.launch {
-            val listener = object : DeviceFileProgressListener() {
-                override fun onConnect(device: DeviceInfo, batteryLevel: Int) {
-                    serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.CONNECTED))
+            val listener = object : DeviceFileProgressListener(deviceInfo) {
+                private var batteryLevel = -1
+                override fun onConnect(batteryLevel: Int) {
+                    this.batteryLevel = batteryLevel
+                    serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.CONNECTED, batteryLevel))
+                    //Log.i("cycoffline1", "bat ${batteryLevel}")
                 }
 
-                override fun onDisconnect(device: DeviceInfo) {
-                    serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.OFFLINE))
+                override fun onDisconnect() {
+                    serviceRepository.update(DeviceStatus(device.address, device.name, DEVICE_STATUS.OFFLINE, this.batteryLevel))
+                    //Log.i("cycoffline1", "bat null")
                 }
             }
-            repository.connect(deviceInfo, this, listener)?.use {
-                val newList = it.getFileList().map { file ->
+            repository.connect(deviceInfo, this, listener)?.use { device ->
+                val newList = device.getFileList().map { file ->
                     if (fitRepository.contains(file.name))
                         DeviceFileStatus( file, file.size)
                     else {

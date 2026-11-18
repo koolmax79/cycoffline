@@ -1,6 +1,7 @@
 package ru.koolmax.cycoffline.presentation.ui.deviceList
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -40,6 +41,7 @@ import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import ru.koolmax.cycoffline.data.db.toDeviceInfo
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.presentation.ui.settings.SettingsViewModel
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
@@ -52,7 +54,7 @@ fun ScanBLEScreen(navController: NavController, viewModel: DeviceListViewModel =
     LaunchedEffect(Unit) {
         viewModel.startScan()
     }
-//modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space300)
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
             horizontalArrangement = Arrangement.SpaceBetween) {

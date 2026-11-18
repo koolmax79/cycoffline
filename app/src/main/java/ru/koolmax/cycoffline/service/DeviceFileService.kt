@@ -22,13 +22,16 @@ import ru.koolmax.cycoffline.data.DeviceFile
 import ru.koolmax.cycoffline.data.DeviceFileStatus
 import ru.koolmax.cycoffline.data.DeviceStatus
 import ru.koolmax.cycoffline.data.DeviceFileProgressListener
+import ru.koolmax.cycoffline.data.HeartZone
 import ru.koolmax.cycoffline.data.UriFileStatus
 import ru.koolmax.cycoffline.data.ble.BLEDeviceRepository
 import ru.koolmax.cycoffline.data.db.DeviceInfo
 import ru.koolmax.cycoffline.data.db.FitRepository
+import ru.koolmax.cycoffline.data.db.SettingsDBRepository
 import ru.koolmax.cycoffline.data.media.FileRepository
 import ru.koolmax.cycoffline.data.media.UriFileProgressListener
 import ru.koolmax.cycoffline.presentation.MeasureUtil
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -46,6 +49,7 @@ class DeviceFileService : Service() {
     @Inject lateinit var fileRepository: FileRepository
     @Inject lateinit var fitRepository: FitRepository
     @Inject lateinit var serviceRepository: ServiceRepository
+    @Inject lateinit var settingsDBRepository: SettingsDBRepository
 
     private val binder = LocalBinder()
     private val serviceScope = CoroutineScope(Dispatchers.Default)
@@ -126,12 +130,12 @@ class DeviceFileService : Service() {
     }
 
     suspend fun load(file: DeviceFileStatus, scope: CoroutineScope, notification: DownloadNotifications) {
-        val listener = object : DeviceFileProgressListener() {
+        val listener = object : DeviceFileProgressListener(file.deviceFile.device) {
             private var max = 0
             private var file = ""
-            private lateinit var device: DeviceInfo
-            override fun onConnect(device: DeviceInfo, batteryLevel: Int) {
-                this.device = device
+            private var batteryLevel = -1
+            override fun onConnect(batteryLevel: Int) {
+                this.batteryLevel = batteryLevel
                 serviceRepository.update(
                     DeviceStatus(device, DEVICE_STATUS.CONNECTED)
                 )
@@ -158,8 +162,8 @@ class DeviceFileService : Service() {
                 this.max = 0
             }
 
-            override fun onDisconnect(device: DeviceInfo) {
-                serviceRepository.update(DeviceStatus(device))
+            override fun onDisconnect() {
+                serviceRepository.update(DeviceStatus(device, DEVICE_STATUS.OFFLINE, batteryLevel))
             }
         }
 
@@ -168,8 +172,9 @@ class DeviceFileService : Service() {
         deviceRepository.connect(file.deviceFile.device, scope, listener)?.use { bleDevice ->
             //Log.i("cycoffline1", "start ${file.name}")
             val data = bleDevice.getFile(file.deviceFile.name)
-            //Log.i("cycoffline1", data.size.toString())
-            fileRepository.addFit(data, file.deviceFile.name)?.let {
+            //Log.i("cycoffline1", settingsDBRepository.weight.toString())
+            HeartZone.calcMaxHR(settingsDBRepository.birthday, settingsDBRepository.gender, LocalDate.now())
+            fileRepository.addFit(data, file.deviceFile.name, settingsDBRepository.birthday, settingsDBRepository.gender, settingsDBRepository.weight)?.let {
                 fitRepository.add(it)
             }
             //Log.i("cycoffline1", "end ${file.name}")
@@ -194,7 +199,7 @@ class DeviceFileService : Service() {
                 notification.updateNotification(text)
             }
         }
-        fileRepository.addFit(file.uri)?.let {
+        fileRepository.addFit(file.uri, settingsDBRepository.heartZone.maxHR, settingsDBRepository.weight)?.let {
             listener.name = it.fileName
             fitRepository.add(it)
         }

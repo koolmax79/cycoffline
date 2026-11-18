@@ -18,8 +18,8 @@ sealed class PathData(var path: Path = Path()) {
     object Empty: PathData()
 
     class Line(
-        val yData: List<Float>,
-        val xData: List<Int>,
+        val yData: FloatArray,
+        val xData: IntArray,
         val yMin: Float,
         val yMax: Float,
         val close: Boolean,
@@ -27,29 +27,28 @@ sealed class PathData(var path: Path = Path()) {
         val rounded: Boolean,
         val rect: Rect,
     ): PathData() {
-        fun getData(position: Offset) : Pair<Float, Float> {
+        fun getData(position: Offset) : DataPoint {
+            val idx = (position.x - rect.left) / rect.width * (yData.size - 1)
+            val idx1 = floor(idx).toInt()
             when (typeLine) {
                 TypeLine.Linear -> {
-                    val idx = (position.x - rect.left) / rect.width * (yData.size - 1)
-                    val idx1 = floor(idx).toInt()
                     val idx2 = ceil(idx).toInt()
                     val coefficient = if (idx2 == idx1) 0f else (idx - idx1) / (idx2 - idx1)
-                    return Pair(
+                    return DataPoint(
                         (xData[idx2] - xData[idx1]) * coefficient + xData[idx1],
-                        (yData[idx2] - yData[idx1]) * coefficient + yData[idx1]
+                        (yData[idx2] - yData[idx1]) * coefficient + yData[idx1],
+                        idx.toInt()
                     )
                 }
                 TypeLine.Step -> {
-                    val idx = (position.x - rect.left) / rect.width * (yData.size - 1)
-                    val idx1 = floor(idx).toInt()
-                    return Pair(xData[idx1].toFloat(), yData[idx1])
+                    return DataPoint(xData[idx1].toFloat(), yData[idx1], idx.toInt())
                 }
             }
         }
 
         init {
             require(yData.size == xData.size)
-            if (!yData.isEmpty()) {
+            if (yData.isNotEmpty()) {
                 val calculateHeight = { value: Float ->
                     calculateOffset(
                         maxValue = yMax,
@@ -151,14 +150,4 @@ sealed class PathData(var path: Path = Path()) {
             }
         }
     }
-
-    /*class XZone(val x1: Float,
-                val x2: Float,
-                val color: Color,
-                val alpha: Float
-                ): PathData() {
-        init {
-
-        }
-    }*/
 }

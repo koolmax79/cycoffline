@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 
 data class Line(
     val label: String? = null,
-    val values: List<Float>,
+    val values: FloatArray,
     val color: Brush,
     val type: TypeLine = TypeLine.Linear,
     val drawStyle: DrawStyle = DrawStyle.Stroke(2.dp),

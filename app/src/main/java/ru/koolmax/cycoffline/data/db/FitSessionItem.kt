@@ -18,10 +18,16 @@ data class FitSessionItem(
     var fileName: String = "",
     @ColumnInfo(name="displayed", defaultValue = "0")
     var displayed: Int = 0,
+    @ColumnInfo(name="sub_sport")
+    var subSport: Int?=null,
     @ColumnInfo(name="avg_heart_rate")
     var avgHeartRate: Int?=null,
     @ColumnInfo(name="avg_speed")
     var avgSpeed: Double?=null,
+    @ColumnInfo(name="avg_cadence")
+    var avgCadence: Int?=null,
+    @ColumnInfo(name="avg_power")
+    var avgPower: Int?=null,
     @ColumnInfo(name="max_altitude")
     var maxAltitude: Double?=null,
     @ColumnInfo(name="max_heart_rate")
@@ -32,6 +38,10 @@ data class FitSessionItem(
     var maxPosGrade: Double?=null,
     @ColumnInfo(name="max_speed")
     var maxSpeed: Double?=null,
+    @ColumnInfo(name="max_cadence")
+    var maxCadence: Int?=null,
+    @ColumnInfo(name="max_power")
+    var maxPower: Int?=null,
     @ColumnInfo(name="min_heart_rate")
     var minHeartRate: Int?=null,
     @ColumnInfo(name="start_time")
@@ -45,7 +55,13 @@ data class FitSessionItem(
     @ColumnInfo(name="total_elapsed_time")
     var totalElapsedTime: Int?=null,
     @ColumnInfo(name="total_moving_time")
-    var totalMovingTime: Int?=null
+    var totalMovingTime: Int?=null,
+    @ColumnInfo(name="total_calories")
+    var totalCalories: Int?=null,
+    @ColumnInfo(name="maxHRUser")
+    var maxHRUser: Int?=null,
+    @ColumnInfo(name="weightUser")
+    var weightUser: Int?=null
 ): SessionMesgListener {
 
     val isDisplayed get() = displayed !=0
@@ -53,18 +69,24 @@ data class FitSessionItem(
     override fun onMesg(p0: SessionMesg?) {
         if (p0 == null) return
         startTime = LocalDateTime.ofInstant(p0.startTime.date.toInstant(), ZoneId.systemDefault())
+        subSport = p0.subSport.value.toInt()
         totalElapsedTime = p0.totalElapsedTime?.toInt()
         totalMovingTime = p0.totalMovingTime?.toInt()
         totalDistance = p0.totalDistance?.toInt()
-        avgSpeed = p0.avgSpeed.toDouble() * 3.6f
-        maxSpeed = p0.maxSpeed.toDouble() * 3.6f
+        avgSpeed = p0.avgSpeed?.let { it.toDouble() * 3.6f }
+        maxSpeed = p0.maxSpeed?.let { it.toDouble() * 3.6f }
+        avgCadence = p0.avgCadence?.toInt()
         minHeartRate = p0.minHeartRate?.toInt()
         maxHeartRate = p0.maxHeartRate?.toInt()
         avgHeartRate = p0.avgHeartRate?.toInt()
+        avgPower = p0.avgPower
+        maxPower = p0.maxPower
         maxPosGrade = p0.maxPosGrade?.toDouble()
+        maxCadence = p0.maxCadence?.toInt()
         maxNegGrade = p0.maxNegGrade?.toDouble()
         totalAscent = p0.totalAscent
         totalDescent = p0.totalDescent
         maxAltitude = p0.maxAltitude?.toDouble()
+        totalCalories = p0.totalCalories
     }
 }

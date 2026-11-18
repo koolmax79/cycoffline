@@ -17,15 +17,15 @@ data class DeviceFileStatus(val deviceFile: DeviceFile, var loadedSize: Int = -1
     val isSynchronizing get() = (loadedSize < deviceFile.size) && (loadedSize > 0)
     val inQueue get() = loadedSize == 0
     override val loadedPart = when {
-        (loadedSize == -1) -> 0.toFloat()
+        (loadedSize == -1) -> 0f
         else -> loadedSize.toFloat() / deviceFile.size.toFloat()
     }
 }
 
 data class UriFileStatus(val uri: Uri, var loadedStep: Int = -1): FileStatus() {
     override val loadedPart = when {
-        (loadedStep == -1) -> 0.toFloat()
-        (loadedStep == 0) -> (0.5).toFloat()
-        else -> 1.toFloat()
+        (loadedStep == -1) -> 0f
+        (loadedStep == 0) -> 0.5f
+        else -> 1f
     }
 }

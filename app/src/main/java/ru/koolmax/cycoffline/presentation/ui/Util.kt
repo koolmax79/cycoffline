@@ -31,6 +31,9 @@ object ColorUtil {
             ChartType.MOVING_TIME -> LocalCustomColorsPalette.current.movingTime
             ChartType.AVG_HEART_RATE -> LocalCustomColorsPalette.current.heartColor
             ChartType.MAX_HEART_RATE -> LocalCustomColorsPalette.current.heartColor
+            ChartType.AVG_POWER -> LocalCustomColorsPalette.current.powerColor
+            ChartType.MAX_POWER -> LocalCustomColorsPalette.current.powerColor
+            ChartType.MAX_TOTAL_CALORIES -> LocalCustomColorsPalette.current.caloriesColor
             ChartType.NONE -> throw Exception("")
         }
     }
@@ -39,6 +42,7 @@ object ColorUtil {
     fun getColor(type: FitListType) =
         when(type) {
             FitListType.ALTITUDE -> LocalCustomColorsPalette.current.altitudeColor
+            FitListType.POWER -> LocalCustomColorsPalette.current.powerColor
             FitListType.GRADE -> LocalCustomColorsPalette.current.gradeColor
             FitListType.SPEED -> LocalCustomColorsPalette.current.speedColor
             FitListType.HEART -> LocalCustomColorsPalette.current.heartColor
@@ -58,7 +62,7 @@ fun Iterable<Number>.minChart(): Pair<Double, Double> {
     return Pair(min.toDouble(), max.toDouble())
 }
 
-fun interpolateY(yValues: List<Float>, xValues: List<Int>, steps: Int): List<Float> {
+fun interpolateY(yValues: FloatArray, xValues: IntArray, steps: Int): FloatArray {
     require(yValues.size == xValues.size) {
         "Lists must be of the same size"
     }
@@ -70,7 +74,7 @@ fun interpolateY(yValues: List<Float>, xValues: List<Int>, steps: Int): List<Flo
     val maxX = xValues.last()
 
     val stepSize = (maxX - minX).toFloat() / (steps - 1)
-    val interpolatedPoints = MutableList(steps) { 0f }
+    val interpolatedPoints = FloatArray(steps)
 
     var idx = 0
     var currentIndex = 0
@@ -101,7 +105,7 @@ fun interpolateY(yValues: List<Float>, xValues: List<Int>, steps: Int): List<Flo
     return interpolatedPoints
 }
 
-fun interpolateX(distanceValues: List<Int>, steps: Int): List<Int> {
+fun interpolateX(distanceValues: IntArray, steps: Int): IntArray {
     require(steps > 1) {
         "Number of steps must be greater than 1"
     }
@@ -109,7 +113,7 @@ fun interpolateX(distanceValues: List<Int>, steps: Int): List<Int> {
     val maxX = distanceValues.last()
 
     val stepSize = (maxX - minX).toDouble() / (steps - 1)
-    val interpolatedPoints = MutableList(steps) { 0 }
+    val interpolatedPoints = IntArray(steps)
 
     var idx = 0
     for (i in 0 until steps) {
@@ -119,4 +123,19 @@ fun interpolateX(distanceValues: List<Int>, steps: Int): List<Int> {
         idx += 1
     }
     return interpolatedPoints
+}
+
+fun FloatArray.fullDefaultVal(default: Float) {
+    if(this.size > 1) {
+        for (i in 1 until size) {
+            if (this[i] == default)
+                this[i] = this[i - 1]
+        }
+        if (this[0] == 360f) {
+            for (i in (size - 2) downTo 0) {
+                if (this[i] == default)
+                    this[i] = this[i + 1]
+            }
+        }
+    }
 }

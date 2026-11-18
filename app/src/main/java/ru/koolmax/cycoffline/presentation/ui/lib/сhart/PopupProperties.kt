@@ -22,11 +22,8 @@ data class PopupProperties(val enabled: Boolean = true,
                            val textStyle: TextStyle = TextStyle.Default.copy(fontSize = 12.sp),
                            val backgroundColor: Color = Color.White,
                            val lineColor: Color = Color.White,
-                           val yIndicatorBuilder: (Float) -> String = {
-                               it.toString()
-                           },
-                           val xIndicatorBuilder: (Int) -> String = {
-                               it.toString()
+                           val indicatorBuilder: (DataPoint) -> String = { dataPoint ->
+                               "${dataPoint.x}\n${dataPoint.y}"
                            },
                            val dot: Boolean = true,
                            val onClick: (Any) -> Unit = { })

@@ -104,6 +104,7 @@ data class CustomColorsPalette(
     val ascentColor: Color = Color.Unspecified,
     val distanceColor: Color = Color.Unspecified,
     val altitudeColor: Color = Color.Unspecified,
+    val powerColor: Color = Color.Unspecified,
     val gradeColor: Color = Color.Unspecified,
     val speedColor: Color = Color.Unspecified,
     val heartColor: Color = Color.Unspecified,
@@ -111,12 +112,18 @@ data class CustomColorsPalette(
     val temperatureColor: Color = Color.Unspecified,
     val heartTimeColor: Color = Color.Unspecified,
     val movingTime: Color = Color.Unspecified,
+    val caloriesColor: Color = Color.Unspecified,
+
+    val trackColor: Color = Color.Unspecified,
+    val startColor: Color = Color.Unspecified,
+    val finishColor: Color = Color.Unspecified,
 
     val heartZone1Color: Color = Color.Unspecified,
     val heartZone2Color: Color = Color.Unspecified,
     val heartZone3Color: Color = Color.Unspecified,
     val heartZone4Color: Color = Color.Unspecified,
     val heartZone5Color: Color = Color.Unspecified,
+
 ) {
     val heartZoneColor get() = mapOf(
         1 to heartZone1Color,
@@ -151,6 +158,9 @@ data class CustomColorsPalette(
         ChartType.ASCENT -> ascentColor
         ChartType.MOVING_TIME -> movingTime
         ChartType.MAX_HEART_RATE -> heartColor
+        ChartType.AVG_POWER -> powerColor
+        ChartType.MAX_POWER -> powerColor
+        ChartType.MAX_TOTAL_CALORIES -> caloriesColor
         ChartType.NONE -> throw Exception()
     }
 }
@@ -163,6 +173,7 @@ val LightCustomColorsPalette = CustomColorsPalette(
     movingTime = MovingTime,
     ascentColor = AscentColor,
     distanceColor = DistanceColor,
+    powerColor = PowerColor,
     altitudeColor = AltitudeColor,
     gradeColor = GradeColor,
     speedColor = SpeedColor,
@@ -170,6 +181,11 @@ val LightCustomColorsPalette = CustomColorsPalette(
     cadenceColor = CadenceColor,
     temperatureColor = TemperatureColor,
     heartTimeColor = HeartTimeColor,
+    caloriesColor = CaloriesColor,
+
+    trackColor = IconColorEnabled,
+    startColor = IconColorActive,
+    finishColor = HeartTimeColor,
 
     heartZone1Color = HeartZone1Color,
     heartZone2Color = HeartZone2Color,
@@ -186,6 +202,7 @@ val DarkCustomColorsPalette = CustomColorsPalette(
     movingTime = MovingTime,
     ascentColor = AscentColor,
     distanceColor = DistanceColor,
+    powerColor = PowerColor,
     altitudeColor = AltitudeColor,
     gradeColor = GradeColor,
     speedColor = SpeedColor,
@@ -193,6 +210,11 @@ val DarkCustomColorsPalette = CustomColorsPalette(
     cadenceColor = CadenceColor,
     temperatureColor = TemperatureColor,
     heartTimeColor = HeartTimeColor,
+    caloriesColor = CaloriesColor,
+
+    trackColor = IconColorEnabled,
+    startColor = IconColorActive,
+    finishColor = HeartTimeColor,
 
     heartZone1Color = HeartZone1Color,
     heartZone2Color = HeartZone2Color,

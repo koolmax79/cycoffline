@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.onStart
+import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattService
 import no.nordicsemi.android.kotlin.ble.client.main.service.ClientBleGattServices
 import no.nordicsemi.android.kotlin.ble.core.data.BleWriteType
 import no.nordicsemi.android.kotlin.ble.core.data.util.DataByteArray
@@ -15,7 +16,7 @@ import ru.koolmax.cycoffline.data.DeviceFileProgressListener
 import java.util.UUID
 import kotlin.experimental.xor
 
-class YModem(private val services: ClientBleGattServices, private val scope: CoroutineScope, private val progressListener: DeviceFileProgressListener) {
+class YModem(private val UARTService: ClientBleGattService, private val scope: CoroutineScope, private val progressListener: DeviceFileProgressListener) {
     private var curXOSSFile: XOSSFile? = null
 
     private enum class TXCmd(val v: Byte) { ACK(0x06), NAK(0x15), C(0x43) }
@@ -82,11 +83,8 @@ class YModem(private val services: ClientBleGattServices, private val scope: Cor
 
     @SuppressLint("MissingPermission")
     private suspend fun sendCmd(data: ByteArray) {
-        val serviceUUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         val charCTRLUUID = UUID.fromString("6e400004-b5a3-f393-e0a9-e50e24dcca9e")
-        services.findService(serviceUUID)?.let {
-            it.findCharacteristic(charCTRLUUID)?.splitWrite(DataByteArray(data))
-        }
+        UARTService.findCharacteristic(charCTRLUUID)?.splitWrite(DataByteArray(data))
     }
 
     private suspend fun sendTX(cmd: TXCmd) {
@@ -95,22 +93,17 @@ class YModem(private val services: ClientBleGattServices, private val scope: Cor
 
     @SuppressLint("MissingPermission")
     private suspend fun sendTX(data: ByteArray) {
-        val serviceUUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         val charTXUUID = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
-        services.findService(serviceUUID)?.let {
-            val startData = DataByteArray(data)
-            it.findCharacteristic(charTXUUID)?.splitWrite(startData, BleWriteType.NO_RESPONSE)
-        }
+        val startData = DataByteArray(data)
+        UARTService.findCharacteristic(charTXUUID)?.splitWrite(startData, BleWriteType.NO_RESPONSE)
     }
 
     private suspend fun subscribeNotifications() {
         //Log.i("FitOpener3", "start subscribeNotifications")
-        val serviceUUID = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
         val charRXUUID = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
         val charCTRLUUID = UUID.fromString("6e400004-b5a3-f393-e0a9-e50e24dcca9e")
 
-        services.findService(serviceUUID)?.let {
-            it.findCharacteristic(charRXUUID)?.getNotifications()?.onStart {
+        UARTService.findCharacteristic(charRXUUID)?.getNotifications()?.onStart {
                 //Log.i("FitOpener3", "on start RX notify")
             }?.onCompletion {
                 //Log.i("FitOpener3", "on end RX notify")
@@ -123,13 +116,12 @@ class YModem(private val services: ClientBleGattServices, private val scope: Cor
                 }
             }?.onEmpty {
                 //Log.i("FitOpener3", "on empty notify")
-            }?.launchIn(scope)
+                }?.launchIn(scope)
 
-            it.findCharacteristic(charCTRLUUID)?.getNotifications()?.onEach {
+        UARTService.findCharacteristic(charCTRLUUID)?.getNotifications()?.onEach {
                 //Log.i("FitOpener3", "on CMD notify ${it.value.toHex()}")
                 curXOSSFile?.receiveCtrl(it.value)
-            }?.launchIn(scope)
-        }
+        }?.launchIn(scope)
         //Log.i("FitOpener3", "end subscribeNotifications")
     }
 }

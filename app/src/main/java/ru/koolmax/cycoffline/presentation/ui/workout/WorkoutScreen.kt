@@ -154,6 +154,9 @@ fun TabsContent(tabs: List<BarItem>, pagerState: PagerState, fit: String, viewMo
                 2 -> {
                     WorkoutStatisticsScreen(viewModel)
                 }
+                //3 -> {
+                //    WorkoutMapScreen(viewModel)
+                //}
             }
         }
     }

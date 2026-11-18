@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     object FitInfo: Screen("fitInfo")
     object FitCharts: Screen("fitCharts")
     object FitStatistics: Screen("fitStatistics")
+    //object FitMap: Screen("fitMap")
 }
 
 sealed class BarItem(val screen: Screen, val title: Int, val icon: Int, badge: Int = 0) {
@@ -29,10 +30,11 @@ sealed class BarItem(val screen: Screen, val title: Int, val icon: Int, badge: I
     object FitInfo : BarItem(Screen.FitInfo, R.string.info,R.drawable.info)
     object FitCharts : BarItem(Screen.FitCharts,R.string.charts, R.drawable.graphs)
     object FitStatistics : BarItem(Screen.FitStatistics, R.string.statistics, R.drawable.statistics)
+    //object FitMap : BarItem(Screen.FitMap, R.string.map, R.drawable.statistics)
 
     companion object {
         val empty = listOf<BarItem>()
         val mainBottoms = listOf(Device, Fit, Calendar, Statistics, Settings)
-        val fitTabs = listOf(FitInfo, FitCharts, FitStatistics)
+        val fitTabs = listOf(FitInfo, FitCharts, FitStatistics/*, FitMap*/)
     }
 }

@@ -1,6 +1,5 @@
 package ru.koolmax.cycoffline.presentation.ui.lib.сhart.lineChart
 
-import android.util.Log
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,13 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextMeasurer
@@ -42,12 +36,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisType
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartGeometry
+import ru.koolmax.cycoffline.presentation.ui.lib.сhart.DataPoint
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartZone
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.GridProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.PathData
@@ -59,7 +52,7 @@ import kotlin.math.max
 fun LineChart(
     modifier: Modifier = Modifier,
     data: Line,
-    xData: List<Int>,
+    xData: IntArray,
     xZoneList: List<ChartZone> = listOf(),
     yZoneList: List<ChartZone> = listOf(),
     axisProperties: AxisProperties = AxisProperties(textMeasurer = rememberTextMeasurer()),
@@ -111,7 +104,6 @@ fun LineChart(
         //yIndicatorSize.width.toFloat()
         val data = pathData
         if(data is PathData.Line) {
-
             val position = Offset(
                 x = position.x.coerceIn(geometry.chart.left, geometry.chart.right),
                 y = position.y.coerceIn(geometry.chart.top, geometry.chart.bottom)
@@ -119,12 +111,11 @@ fun LineChart(
             val value = data.getData(position)
             popup = Popup.Show(
                 position = position,
-                x = value.first.toInt(),
-                y = value.second,
+                dataPoint = DataPoint(value.x, value.y, value.idx),
                 min = yAxis.max,
                 max = yAxis.min,
                 property = popupProperties,
-                geometry.chart,
+                rect = geometry.chart,
                 textMeasurer = axisProperties.textMeasurer,
                 null
             )
@@ -248,7 +239,7 @@ fun LineChart(
                     )
                 }
 
-                var pathEffect: PathEffect? = null
+                val pathEffect: PathEffect? = null
                 val stroke: Float = when (val drawStyle = data.drawStyle) {
                     is DrawStyle.Fill -> 0f
                     is DrawStyle.Stroke -> drawStyle.width.toPx()
@@ -332,19 +323,21 @@ fun LineChart(
 sealed class Popup {
     object Empty : Popup()
 
-    class Show<T>(position: Offset, x: Int, y: Float, min: Float, max: Float, property : PopupProperties, rect: Rect, textMeasurer: TextMeasurer, val obj: T): Popup() {
+    class Show<T>(position: Offset, dataPoint: DataPoint, min: Float, max: Float, property : PopupProperties, rect: Rect, textMeasurer: TextMeasurer, val obj: T): Popup() {
         val linePath = Path()
         val rectPath: Pair<Offset, Size>
         val point: Offset
         val text: String
 
+        fun inRect(position: Offset): Boolean = Rect(rectPath.first.x, rectPath.first.y, rectPath.first.x + rectPath.second.width, rectPath.first.y + rectPath.second.height).contains(position)
+
         init {
-            text = "${property.yIndicatorBuilder(y)}\n${property.xIndicatorBuilder(x)}"
+            text = property.indicatorBuilder(dataPoint)
             val textLayoutResult = textMeasurer.measure(text)
             linePath.moveTo(position.x, textLayoutResult.size.height.toFloat())
             linePath.lineTo(position.x, rect.bottom)
 
-            point = Offset(position.x, calculateOffset(minValue = min, maxValue = max, total = rect.height, value = y))
+            point = Offset(position.x, calculateOffset(minValue = min, maxValue = max, total = rect.height, value = dataPoint.y))
 
             val topLeft = Offset((position.x - 6f).coerceIn(rect.left, rect.right - textLayoutResult.size.width), 0f)
 

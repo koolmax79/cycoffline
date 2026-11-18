@@ -9,6 +9,7 @@ import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 sealed class CharItem(val name: Int, val icon: Int) {
     object Altitude : CharItem(R.string.altitude, R.drawable.elevation_gain)
     object Grade : CharItem(R.string.grade, R.drawable.elevation)
+    object Power : CharItem(R.string.power, R.drawable.power)
     object Speed : CharItem(R.string.speed, R.drawable.speed)
     object Heart : CharItem(R.string.heart, R.drawable.heart_rate)
     object Cadence : CharItem(R.string.cadence, R.drawable.cadence)
@@ -18,6 +19,7 @@ sealed class CharItem(val name: Int, val icon: Int) {
         val list = mapOf(FitListType.ALTITUDE to Altitude,
             FitListType.GRADE to Grade,
             FitListType.SPEED to Speed,
+            FitListType.POWER to Power,
             FitListType.HEART to Heart,
             FitListType.CADENCE to Cadence,
             FitListType.TEMPERATURE to Temperature)

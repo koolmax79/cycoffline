@@ -36,14 +36,17 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ru.koolmax.cycoffline.data.media.FitListType
 import ru.koolmax.cycoffline.data.media.MonitoringChart
 import ru.koolmax.cycoffline.data.media.MonitoringData
 import ru.koolmax.cycoffline.data.media.XMeasurement
 import ru.koolmax.cycoffline.data.media.XPause
 import ru.koolmax.cycoffline.data.media.Zone
+import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.getText
 import ru.koolmax.cycoffline.presentation.getTextForChart
+import ru.koolmax.cycoffline.presentation.pairToString
 import ru.koolmax.cycoffline.presentation.ui.ColorUtil
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.lineChart.DrawStyle
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.GridProperties
@@ -136,7 +139,7 @@ fun WorkoutChartScreenLandscape(viewModel: WorkoutViewModel, monitoringData: Mon
 }
 
 @Composable
-fun Chart(modifier: Modifier = Modifier, type: FitListType, xMeasurement: XMeasurement, fitRecords: MonitoringChart, xValues: List<Int>, heartZone: List<Zone>) {
+fun Chart(modifier: Modifier = Modifier, type: FitListType, xMeasurement: XMeasurement, fitRecords: MonitoringChart, xValues: IntArray, heartZone: List<Zone>) {
     val chartInfo = CharItem.list.getValue(type)
     val lineColor = ColorUtil.getColor(type)
     val heartZoneColor = LocalCustomColorsPalette.current.heartZoneColor
@@ -198,12 +201,23 @@ fun Chart(modifier: Modifier = Modifier, type: FitListType, xMeasurement: XMeasu
                         getTextForChart(it, type)
                     }),
                 popupProperties = PopupProperties(
-                    backgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
                     lineColor = lineColor,
-                    xIndicatorBuilder = {
-                        getText(it, xMeasurement)
-                    }, yIndicatorBuilder = {
-                        getText(it, type)
+                    backgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    textStyle = TextStyle.Default.copy(fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground),
+                    indicatorBuilder = { point ->
+                        //"${getText(point.x.toInt(), xMeasurement)}\n${getText(point.y, type)}"
+                        if (type == FitListType.ALTITUDE) {
+                            val k = if(point.idx == data.values.size-1)
+                                (data.values[point.idx] - data.values[point.idx]-1) / (xValues[point.idx] - xValues[point.idx-1])
+                            else
+                                (data.values[point.idx+1] - data.values[point.idx]) / (xValues[point.idx+1] - xValues[point.idx])
+
+                            "${getText(point.y, type)}\n" +
+                            "${MeasureUtil.getPercent(k * 100, "%.1f").pairToString()}\n" +
+                            getText(point.x.toInt(), xMeasurement)
+                        }
+                        else
+                            "${getText(point.y, type)}\n${getText(point.x.toInt(), xMeasurement)}"
                     }
                 ),
                 gridProperties = GridProperties(color = MaterialTheme.colorScheme.onSurface)

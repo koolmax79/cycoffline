@@ -29,6 +29,9 @@ class MeasureUtil {
         const val speedUnit = "км/ч"
         const val heartRateUnit = "уд/м"
         const val cadenceRateUnit = "об/м"
+        const val powerUnit = "Вт"
+        const val powerToWeightUnit = "Вт/кг"
+        const val caloriesUnit = "ккал"
 
         private val empty = Pair("-", "")
         private val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
@@ -79,6 +82,14 @@ class MeasureUtil {
             return if (v != null) Pair(String.format(format, v), speedUnit) else empty
         }
 
+        fun getPower(v: Int?): Pair<String, String> {
+            return if (v != null) Pair("$v", powerUnit) else empty
+        }
+
+        fun getPowerToWeight(v: Float?): Pair<String, String> {
+            return if (v != null) Pair(String.format("%.2f", v), powerToWeightUnit) else empty
+        }
+
         fun getHeartRate(v: Int?): Pair<String, String> {
             return if (v != null) Pair("$v", heartRateUnit) else empty
         }
@@ -87,12 +98,16 @@ class MeasureUtil {
             return if (v != null) Pair("$v", cadenceRateUnit) else empty
         }
 
+        fun getCalories(v: Int?): Pair<String, String> {
+            return if (v != null) Pair("$v", caloriesUnit) else empty
+        }
+
         fun getGrade(v: Float?, format: String = "%.1f"): Pair<String, String> {
             return if (v != null) Pair(String.format(format, v), "%") else empty
         }
 
-        fun getPercent(v: Float?): Pair<String, String> {
-            return if (v != null) Pair(String.format("%.0f", v), "%") else empty
+        fun getPercent(v: Float?, format: String = "%.0f"): Pair<String, String> {
+            return if (v != null) Pair(String.format(format, v), "%") else empty
         }
 
         fun getTemperature(v: Int?): Pair<String, String> {
@@ -131,6 +146,9 @@ fun getTextForChart(value: Float, type: ChartType, showMeasurement: Boolean = fa
     ChartType.ASCENT -> MeasureUtil.getDistance(value.toInt(), "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
     ChartType.MOVING_TIME -> MeasureUtil.getDurationShort(value.toInt())
     ChartType.MAX_HEART_RATE -> MeasureUtil.getHeartRate(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_POWER -> MeasureUtil.getPower(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MAX_POWER -> MeasureUtil.getPower(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MAX_TOTAL_CALORIES -> MeasureUtil.getCalories(value.toInt()).run { if(showMeasurement) this.pairToString() else this.first }
     ChartType.NONE -> ""
 }
 
@@ -141,11 +159,15 @@ fun getTextForChart(value: Int, type: ChartType, showMeasurement: Boolean = fals
     ChartType.ASCENT -> MeasureUtil.getDistance(value, "%.0f").run { if(showMeasurement) this.pairToString() else this.first }
     ChartType.MOVING_TIME -> MeasureUtil.getDurationShort(value)
     ChartType.MAX_HEART_RATE -> MeasureUtil.getHeartRate(value).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.AVG_POWER -> MeasureUtil.getPower(value).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MAX_POWER -> MeasureUtil.getPower(value).run { if(showMeasurement) this.pairToString() else this.first }
+    ChartType.MAX_TOTAL_CALORIES -> MeasureUtil.getCalories(value).run { if(showMeasurement) this.pairToString() else this.first }
     ChartType.NONE -> ""
 }
 
 fun getTextForChart(value: Float, type: FitListType) = when(type) {
     FitListType.SPEED -> MeasureUtil.getSpeed(value, "%.0f")
+    FitListType.POWER -> MeasureUtil.getPower(value.toInt())
     FitListType.HEART -> MeasureUtil.getHeartRate(value.toInt())
     FitListType.CADENCE -> MeasureUtil.getCadence(value.toInt())
     FitListType.GRADE -> MeasureUtil.getGrade(value, "%.0f")
@@ -156,6 +178,7 @@ fun getTextForChart(value: Float, type: FitListType) = when(type) {
 
 fun getText(value: Float, type: FitListType, showMeasurement: Boolean = true) = when(type) {
     FitListType.SPEED -> MeasureUtil.getSpeed(value)
+    FitListType.POWER -> MeasureUtil.getPower(value.toInt())
     FitListType.HEART -> MeasureUtil.getHeartRate(value.toInt())
     FitListType.CADENCE -> MeasureUtil.getCadence(value.toInt())
     FitListType.GRADE -> MeasureUtil.getGrade(value)

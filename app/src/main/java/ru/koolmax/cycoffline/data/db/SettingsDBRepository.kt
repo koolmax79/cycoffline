@@ -8,11 +8,13 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.ranges.rangeTo
 
 const val BIRTHDAY = "birthday"
 const val GENDER = "gender"
 const val MAX_HR = "maxHR"
 const val AUTO_HR = "autoHR"
+const val WEIGHT = "weight"
 
 @Singleton
 class SettingsDBRepository @Inject constructor(private val db: FitDatabase) {
@@ -56,9 +58,8 @@ class SettingsDBRepository @Inject constructor(private val db: FitDatabase) {
 
     var autoHR: Boolean
         get() {
-            val str = getValue(AUTO_HR)
             try {
-                return str.toBoolean()
+                return getValue(AUTO_HR).toBoolean()
             } catch(_: Exception) {
                 setValue(SettingsItem(AUTO_HR, true.toString()))
                 return true
@@ -66,6 +67,19 @@ class SettingsDBRepository @Inject constructor(private val db: FitDatabase) {
         }
         set(value) {
             setValue(SettingsItem(AUTO_HR, value.toString()))
+        }
+
+    var weight: Int?
+        get() {
+            try {
+                return getValue(WEIGHT)!!.toInt()
+            } catch(_: Exception) {
+                setValue(SettingsItem(WEIGHT, ""))
+                return null
+            }
+        }
+        set(value) {
+            setValue(SettingsItem(WEIGHT, value.toString()))
         }
 
     var heartZone: HeartZone

@@ -7,13 +7,17 @@ import android.util.Log
 import com.garmin.fit.Decode
 import com.garmin.fit.FileIdMesgListener
 import com.garmin.fit.FitRuntimeException
+import com.garmin.fit.Gender
 import com.garmin.fit.MesgBroadcaster
 import com.garmin.fit.RecordMesgListener
+import com.garmin.fit.Weight
+import ru.koolmax.cycoffline.data.HeartZone
 import ru.koolmax.cycoffline.data.db.FitSessionItem
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,7 +91,7 @@ class FileRepository @Inject constructor(private val context: Context) {
         }
     }
 
-    fun addFit(uri: Uri): FitSessionItem? {
+    fun addFit(uri: Uri, maxHRUser: Int?, weight: Int?): FitSessionItem? {
         try {
             //for (fit in fitFileList) {
             //    if(fit.GetFile().name  == uri.getName(application!!)) return null
@@ -96,7 +100,10 @@ class FileRepository @Inject constructor(private val context: Context) {
                 getFitFileId(it)?.let {
                     val outputFile = it.timeCreated.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".fit"
                     val session = context.contentResolver.openInputStream(uri)?.let {
-                        getSession(it, outputFile)
+                        getSession(it, outputFile)?.apply {
+                            this.maxHRUser = maxHRUser
+                            this.weightUser = weight
+                        }
                     }
 
                     context.contentResolver.openInputStream(uri)?.let {
@@ -121,13 +128,17 @@ class FileRepository @Inject constructor(private val context: Context) {
         return null
     }
 
-    fun addFit(data: ByteArray, fileName: String): FitSessionItem? {
+    fun addFit(data: ByteArray, fileName: String, birthday: LocalDate, gender: Gender, weightUser: Int?): FitSessionItem? {
         try {
             //for (fit in fitFileList) {
             //    if(fit.GetFile().name  == uri.getName(application!!)) return null
             //}
             val inputStream = ByteArrayInputStream(data)
-            val session = getSession(inputStream, fileName)
+            val session = getSession(inputStream, fileName)?.apply {
+                if(this.startTime!=null)
+                    this.maxHRUser = HeartZone.calcMaxHR(birthday, gender, this.startTime!!.toLocalDate())
+                this.weightUser = weightUser
+            }
             //if(session!=null) {
                 val outputFile = File(context.filesDir, fileName)
                 val outputStream = outputFile.outputStream()
@@ -148,6 +159,6 @@ class FileRepository @Inject constructor(private val context: Context) {
     fun delFit(name: String) {
         val file = File(context.filesDir, name)
         val d = file.delete()
-        Log.i("FitOpener3", "${d} ${context.filesDir} ${name}")
+        //Log.i("FitOpener3", "${d} ${context.filesDir} ${name}")
     }
 }

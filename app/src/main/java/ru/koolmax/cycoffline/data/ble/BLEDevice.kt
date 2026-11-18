@@ -13,6 +13,12 @@ import ru.koolmax.cycoffline.data.db.DeviceInfo
 import java.io.File
 import java.util.UUID
 
+object GattService {
+    val NordicUART = UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e")!!
+    val Battery  = UUID.fromString("0000180f-0000-1000-8000-00805f9b34fb")!!
+}
+
+
 class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleGatt, val modem: YModem, val scope: CoroutineScope, val progressListener: DeviceFileProgressListener): AutoCloseable {
     lateinit var btGatt: ClientBleGatt
 
@@ -27,23 +33,24 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
                 val btGatt = ClientBleGatt.connect(context, device.address, scope)
                 //Log.i("cycoffline1", "gatt ${btGatt.isConnected.toString()}")
                 if (btGatt.isConnected) {
-                    progressListener.onConnect(device, getBatteryLevel(btGatt))
-                    val modem =
-                        YModem(btGatt.discoverServices(), scope, progressListener).apply { start() }
-                    return BLEDevice(device, btGatt, modem, scope, progressListener)
+                    progressListener.onConnect(getBatteryLevel(btGatt))
+                    btGatt.discoverServices().findService(GattService.NordicUART)?.let{
+                        val modem =
+                            YModem(it, scope, progressListener).apply { start() }
+                        return BLEDevice(device, btGatt, modem, scope, progressListener)
+                    }
                 }
-                return null
             }
             catch (_: Exception) {
-                return null
             }
+            progressListener.onDisconnect()
+            return null
         }
 
         @SuppressLint("MissingPermission")
         private suspend fun getBatteryLevel(btGatt: ClientBleGatt): Int {
-            val serviceUUID = UUID.fromString("0000180F-0000-1000-8000-00805F9B34FB")
             val charCTRLUUID = UUID.fromString("00002A19-0000-1000-8000-00805F9B34FB")
-            btGatt.discoverServices().findService(serviceUUID)?.let {
+            btGatt.discoverServices().findService(GattService.Battery)?.let {
                 it.findCharacteristic(charCTRLUUID)?.read()?.let {
                     return it.toString().filterNot { it in "() " }.removePrefix("0x").hexToInt()
                 }
@@ -73,7 +80,7 @@ class BLEDevice private constructor(val device: DeviceInfo, val gatt: ClientBleG
     override fun close() {
         if(::btGatt.isInitialized && btGatt.isConnected) {
             btGatt.close()
-            progressListener.onDisconnect(device)
+            progressListener.onDisconnect()
         }
     }
 }

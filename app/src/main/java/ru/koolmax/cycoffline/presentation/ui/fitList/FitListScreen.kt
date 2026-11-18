@@ -1,7 +1,9 @@
 package ru.koolmax.cycoffline.presentation.ui.fitList
 
 import android.annotation.SuppressLint
+import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -40,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +56,7 @@ import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.MeasureUtil.Companion.getYearMonth
 import ru.koolmax.cycoffline.presentation.ui.AlertDialogYesNo
 import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 import java.time.LocalDateTime
@@ -69,7 +73,7 @@ fun FitListScreen(navController: NavController, viewModel: FitViewModel = hiltVi
             viewModel.addFitToLib(it)
         }
     }
-
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     Scaffold(modifier = Modifier.fillMaxSize(), floatingActionButton = {
         FloatingActionButton(onClick = {
             openDocumentLauncher.launch("application/octet-stream")
@@ -128,17 +132,12 @@ fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (F
             if (direction == SwipeToDismissBoxValue.EndToStart) {
                 Box(modifier = Modifier.fillMaxSize().padding(end = LocalSpacing.current.space100).background(color = MaterialTheme.colorScheme.errorContainer),
                     contentAlignment = Alignment.CenterEnd) {
-                    //Row(
-                    //    verticalAlignment = Alignment.CenterVertically,
-                    //    horizontalArrangement = Arrangement.End
-                    //) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(LocalIconSize.current.size100)
-                        )
-                    //}
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(LocalIconSize.current.size100)
+                    )
                 }
             }
         },
@@ -151,15 +150,16 @@ fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (F
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
                 ) {
-                    Text(
-                        text = stringResource(R.string.start),
-                        style = MaterialTheme.typography.bodyLarge
+                    Image(
+                        painter = getSubSportIcon(itm.subSport),
+                        contentDescription = null
                     )
                     Text(
                         text = MeasureUtil.getDateTime(itm.startTime),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
                 Row(
@@ -189,19 +189,6 @@ fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (F
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = stringResource(R.string.movingTime),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = MeasureUtil.getDuration(itm.totalMovingTime),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
                         text = stringResource(R.string.elapsedTime),
                         style = MaterialTheme.typography.bodyLarge
                     )
@@ -224,6 +211,12 @@ fun  FitCard(itm: FitSessionItem, onOpen: (FitSessionItem) -> Unit, onDelete: (F
             onNo = { scope.launch { state.reset() } },
             onClose = { openDialog = false })
     }
+}
+
+@Composable
+private fun getSubSportIcon(subSport: Int?): Painter {
+    subSport?.let { if (it == 58) return painterResource(R.drawable.virtual_ride) }
+    return painterResource(R.drawable.real_ride)
 }
 
 @Preview

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import ru.koolmax.cycoffline.data.HeartZoneInfo
 import ru.koolmax.cycoffline.data.db.FitRepository
@@ -32,20 +33,33 @@ class WorkoutViewModel @Inject constructor(private val fileRepository: FileRepos
     val monitoringData = MutableStateFlow(MonitoringData())
     val timeByMonitoring = MutableStateFlow(listOf<Pair<FitListType, ChartData>>())
     private lateinit var fitFile: FitFile
+    val powerToWeight = MutableStateFlow( 0f )
+    val fit = MutableStateFlow(FitFile())
 
     fun getFitSession(fit: String) {
         viewModelScope.launch {
-            fitSessionItem.emit (fitRepository.getSession(fit))
+            val session = fitRepository.getSession(fit)
             fileRepository.getRecords(fit)?.let {
                 fitFile = it
+
+                if (session.displayed == 0) {
+                    fitFile.init(session)
+                    session.displayed = 1
+                    fitRepository.update(session)
+                }
+                fitSessionItem.emit (session)
+                powerToWeight.emit(
+                    when {
+                        (session.avgPower != null && session.weightUser != null) -> session.avgPower!!.toFloat() / session.weightUser!!
+                        (session.avgPower != null && settingsRepository.weight != null) -> session.avgPower!!.toFloat() / settingsRepository.weight!!
+                        else -> 0f
+                    })
+
+                this@WorkoutViewModel.fit.emit(it)
                 monitoringData.emit(fitFile.getMonitoringData(xMeasurementMode.value, xPauseMode.value))
                 heartZone.emit(it.getHeartZone(settingsRepository.heartZone))
             }
 
-            fitRepository.getSession(fit).let {
-                it.displayed = 1
-                fitRepository.update(it)
-            }
         }
     }
 

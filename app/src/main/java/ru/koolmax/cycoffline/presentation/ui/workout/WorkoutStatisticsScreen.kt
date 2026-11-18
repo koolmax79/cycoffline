@@ -29,11 +29,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import ru.koolmax.cycoffline.data.media.FitListType
 import ru.koolmax.cycoffline.data.media.XMeasurement
 import ru.koolmax.cycoffline.data.media.Zone
+import ru.koolmax.cycoffline.presentation.MeasureUtil
 import ru.koolmax.cycoffline.presentation.getText
 import ru.koolmax.cycoffline.presentation.getTextForChart
+import ru.koolmax.cycoffline.presentation.pairToString
 import ru.koolmax.cycoffline.presentation.ui.ColorUtil
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartData
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.lineChart.DrawStyle
@@ -77,7 +80,7 @@ fun Chart(modifier: Modifier = Modifier, type: FitListType, chartData: ChartData
 
     val data = remember(chartData) {
         Line(
-            values = chartData.yValues.map { it.toFloat() },
+            values = chartData.yValues.map { it.toFloat() }.toFloatArray(),
             color = SolidColor(lineColor),
             fillColor = lineColor,
             type = TypeLine.Step,
@@ -135,12 +138,11 @@ fun Chart(modifier: Modifier = Modifier, type: FitListType, chartData: ChartData
                         getTextForChart(it.toInt(), XMeasurement.TIME)
                     }),
                 popupProperties = PopupProperties(
-                    backgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
                     lineColor =  lineColor,
-                    xIndicatorBuilder = {
-                        getText(it.toFloat(), type)
-                    }, yIndicatorBuilder = {
-                        getText(it.toInt(), XMeasurement.TIME)
+                    backgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    textStyle = TextStyle.Default.copy(fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground),
+                    indicatorBuilder = { point ->
+                        "${getText(point.x, type)}\n${getText(point.y.toInt(), XMeasurement.TIME)}"
                     }
                 ),
                 gridProperties = GridProperties(color = MaterialTheme.colorScheme.onSurface)

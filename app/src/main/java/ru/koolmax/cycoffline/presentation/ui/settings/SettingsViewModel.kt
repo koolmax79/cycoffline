@@ -24,6 +24,7 @@ class SettingsViewModel @Inject constructor(private val repositoryDB: SettingsDB
     val gender = MutableStateFlow(repositoryDB.gender)
     val autoHR = MutableStateFlow(repositoryDB.autoHR)
     val heartZone = MutableStateFlow( repositoryDB.heartZone)
+    val weight = MutableStateFlow( repositoryDB.weight ?: 70)
 
     fun setBirthday(birthday: LocalDate) {
         repositoryDB.birthday = birthday
@@ -33,6 +34,11 @@ class SettingsViewModel @Inject constructor(private val repositoryDB: SettingsDB
     fun setGender(gender: Gender) {
         repositoryDB.gender = gender
         this.gender.value = gender
+    }
+
+    fun setWeight(value: Int) {
+        repositoryDB.weight = value
+        this.weight.value = value
     }
 
     fun setAutoHR(value: Boolean) {

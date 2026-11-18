@@ -36,6 +36,7 @@ import ru.koolmax.cycoffline.presentation.ui.lib.сhart.GridProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisType
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.ChartGeometry
+import ru.koolmax.cycoffline.presentation.ui.lib.сhart.DataPoint
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.PathData
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.PopupProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.lineChart.Popup
@@ -101,8 +102,7 @@ fun <T>BarChart(
         if (idx != -1) {
             popup = Popup.Show(
                 position = position,
-                x = xData[idx],
-                y = bar.dataPoints[idx],
+                dataPoint = DataPoint(xData[idx].toFloat(), bar.dataPoints[idx], idx),
                 min = yAxis.max,
                 max = yAxis.min,
                 property = popupProperties,
@@ -122,30 +122,24 @@ fun <T>BarChart(
                     detectTapGestures(
                         onPress = {
                             if(popupProperties.enabled) {
-                                if (onPressJob?.isActive == true) {
-                                    onPressJob?.cancel()
-                                    onPressJob = null
-                                }
-
-                                onPressJob = scope.launch {
+                                if(popup is Popup.Empty) {
                                     showPopup(
                                         position = it
                                     )
-
-                                    tryAwaitRelease()
-                                    //delay(timeMillis = popupProperties.duration)
-
-                                    //hidePopup()
-                                }
-                                if(popup is Popup.Show<*>) {
-                                    onClick((popup as Popup.Show<T>).obj)
+                                } else {
+                                    val p = (popup as Popup.Show<*>)
+                                    if(p.inRect(it)) {
+                                        scope.launch {
+                                            onClick((popup as Popup.Show<T>).obj)
+                                        }
+                                    } else {
+                                        showPopup(
+                                            position = it
+                                        )
+                                    }
                                 }
                             }
-                            //(pathData as PathData.Bar).let {
-                            //    val idx = .getIndex(it)
-                            //}
                         }
-
                         //onPress = { position ->
                         //    (pathData as PathData.Bar)?.let {
                         //        val idx = it.getIndex(position)
@@ -158,7 +152,6 @@ fun <T>BarChart(
                     detectHorizontalDragGestures(
                         onDragEnd = {
                             scope.launch {
-                                //hidePopup()
                             }
                         },
                         onHorizontalDrag = { change, _ ->

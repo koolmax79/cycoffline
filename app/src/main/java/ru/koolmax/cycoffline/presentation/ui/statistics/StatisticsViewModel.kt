@@ -21,6 +21,9 @@ enum class ChartType(val code: Int, val text: String, val axisType: AxisType) {
     ASCENT(4, "Подъем", AxisType.INT),
     MOVING_TIME(5, "Время в движении", AxisType.TIME),
     MAX_HEART_RATE(6, "Максимальная ЧСС", AxisType.INT),
+    AVG_POWER(7, "Средняя мощность", AxisType.INT),
+    MAX_POWER(8, "Максимальная мощность", AxisType.INT),
+    MAX_TOTAL_CALORIES(9, "Потраченная энергия", AxisType.INT),
     NONE(0, "", AxisType.INT)
 }
 

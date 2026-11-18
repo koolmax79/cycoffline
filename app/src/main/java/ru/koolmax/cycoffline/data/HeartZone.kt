@@ -11,6 +11,14 @@ import java.time.Period
 
 class HeartZone(val list: List<HeartZoneInfo>, val maxHR: Int, val defaultMaxHR: Int) {
     companion object {
+        private fun getAge(birthday: LocalDate, date: LocalDate) = Period.between(birthday, date).years.toFloat()
+
+        fun calcMaxHR(birthday: LocalDate, gender: Gender, date: LocalDate = LocalDate.now()) = when (gender) {
+                Gender.MALE -> 214f - (0.8f * getAge(birthday, date))
+                Gender.FEMALE -> 209f - (0.9f * getAge(birthday, date))
+                else -> 206.9f - (0.67f * getAge(birthday, date))
+            }.toInt()
+
         fun make(date: LocalDate, gender: Gender): HeartZone {
             return make(date, gender, calcMaxHR(date, gender))
         }
@@ -29,13 +37,6 @@ class HeartZone(val list: List<HeartZoneInfo>, val maxHR: Int, val defaultMaxHR:
 
             return HeartZone(list, maxHR, calcMaxHR(date, gender))
         }
-
-        fun getAge(date: LocalDate) = Period.between(date, LocalDate.now()).years.toFloat()
-        private fun calcMaxHR(date: LocalDate, gender: Gender) = when (gender) {
-            Gender.MALE -> 214f - (0.8f * getAge(date))
-            Gender.FEMALE -> 209f - (0.9f * getAge(date))
-            else -> 206.9f - (0.67f * getAge(date))
-        }.toInt()
     }
 }
 

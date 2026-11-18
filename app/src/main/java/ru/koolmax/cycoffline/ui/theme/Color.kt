@@ -8,14 +8,17 @@ val IconDisabled = Color.Gray
 
 val MovingTime = Color(0xFF930001)
 val DistanceColor = Color(0xFF3700B3)
+val PowerColor = Color(0xFF930001)
 val AscentColor = Color(0xFF575E71)
-val AltitudeColor = Color(0xFF575E71)
+val AltitudeColor = Color(0xFFBA1A1A)
 val GradeColor = Color(0xFFFF8800)
 val SpeedColor = Color(0xFFFF8800)
 val HeartColor = Color(0xFFCC0000)
 val CadenceColor = Color(0xFF2B4678)
 val TemperatureColor = Color(0xFFFFBB33)
 val HeartTimeColor = Color(0xFF930001)
+val TrackColor = Color(0xFFCC0000)
+val CaloriesColor = Color(0xFF004009)
 
 val HeartZone1Color = Color(0xFF8088c0)
 val HeartZone2Color = Color(0xFF6f996a)

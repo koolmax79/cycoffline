@@ -30,7 +30,7 @@ data class AxisNumber(override val min: Float, override val max: Float, override
                 }
             }
 
-            Log.i("AxisNumber cycoffline1", "$maxVal - $minVal $maxCount")
+            //Log.i("AxisNumber cycoffline1", "$maxVal - $minVal $maxCount")
 
             val intervalVal = maxVal - minVal
             val step = roundStep(intervalVal / maxCount)
@@ -56,7 +56,7 @@ data class AxisNumber(override val min: Float, override val max: Float, override
             val roundTemplate = arrayOf(10, 2, 5, 5, 5, 10, 10, 10, 10, 10)
             val n = getBaseMantissa(step)
             var str = n.first.toString()
-            Log.i("cycoffline1", "$str $n $step")
+            //Log.i("cycoffline1", "$str $n $step")
 
             val r = roundTemplate[str[0].toString().toInt()]
             str = str.removeRange(0, 1)
@@ -103,7 +103,7 @@ data class AxisTime(override val min: Float, override val max: Float, override v
                 }
             }
 
-            Log.i("AxisTime cycoffline1", "$maxVal - $minVal $maxCount")
+            //Log.i("AxisTime cycoffline1", "$maxVal - $minVal $maxCount")
 
             val intervalVal = maxVal - minVal
             val step = AxisTime.Companion.roundStep(intervalVal / maxCount)

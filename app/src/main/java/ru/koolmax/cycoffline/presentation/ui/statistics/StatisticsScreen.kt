@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.statistics
 
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import dagger.Module
@@ -49,6 +51,7 @@ import ru.koolmax.cycoffline.presentation.ui.lib.сhart.barChart.BarChart
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.GridProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisType
 import ru.koolmax.cycoffline.presentation.ui.lib.HorizontalPicker
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.presentation.ui.lib.PickerValueFormatter
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.AxisProperties
 import ru.koolmax.cycoffline.presentation.ui.lib.сhart.PopupProperties
@@ -91,7 +94,7 @@ fun StatisticsScreen(navController: NavController, viewModel: StatisticsViewMode
             viewModel.getStatistic(yearState.intValue, monthState.intValue)
         }
     }
-
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally) {
         InfoRow(modifier = Modifier.fillMaxWidth(), statistic = sessionStatistic)
@@ -154,6 +157,9 @@ fun DataChart(modifier: Modifier = Modifier, fitSessionList: List<FitSessionItem
                     ChartType.ASCENT -> fitSessionList.map { it.totalAscent?.toFloat() ?: 0f }
                     ChartType.MOVING_TIME -> fitSessionList.map { it.totalMovingTime?.toFloat() ?: 0f }
                     ChartType.MAX_HEART_RATE -> fitSessionList.map { it.maxHeartRate?.toFloat() ?: 0f }
+                    ChartType.AVG_POWER -> fitSessionList.map { it.avgPower?.toFloat() ?: 0f }
+                    ChartType.MAX_POWER -> fitSessionList.map { it.maxPower?.toFloat() ?: 0f }
+                    ChartType.MAX_TOTAL_CALORIES -> fitSessionList.map { it.totalCalories?.toFloat() ?: 0f }
                     ChartType.NONE -> throw Exception("")
                 },
             objects = fitSessionList.map { it }
@@ -187,10 +193,9 @@ fun DataChart(modifier: Modifier = Modifier, fitSessionList: List<FitSessionItem
                     popupProperties = PopupProperties(
                         lineColor = color,
                         backgroundColor = MaterialTheme.colorScheme.inverseOnSurface,
-                        xIndicatorBuilder = {
-                            MeasureUtil.getDateTime(data.objects[it].startTime)
-                        }, yIndicatorBuilder = {
-                            getTextForChart(it, chartType, true)
+                        textStyle = TextStyle.Default.copy(fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground),
+                        indicatorBuilder = { point ->
+                            "${MeasureUtil.getDateTime(data.objects[point.x.toInt()].startTime)}\n${getTextForChart(point.y, chartType, true)}"
                         },
                         dot = false
                     ),

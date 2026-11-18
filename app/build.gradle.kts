@@ -42,7 +42,6 @@ android {
 }
 
 dependencies {
-    implementation(platform(libs.androidx.compose.bom))
     implementation(platform(libs.com.google.devtools.ksp.gradle.plugin))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

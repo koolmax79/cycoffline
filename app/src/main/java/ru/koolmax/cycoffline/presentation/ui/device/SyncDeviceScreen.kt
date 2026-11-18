@@ -1,5 +1,6 @@
 package ru.koolmax.cycoffline.presentation.ui.device
 
+import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -55,6 +56,7 @@ import ru.koolmax.cycoffline.presentation.pairToString
 import ru.koolmax.cycoffline.presentation.ui.ColoredIcon
 import ru.koolmax.cycoffline.presentation.ui.deviceList.DeviceListViewModel
 import ru.koolmax.cycoffline.navigation.Screen
+import ru.koolmax.cycoffline.presentation.ui.lib.LockScreenOrientation
 import ru.koolmax.cycoffline.ui.theme.LightCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalIconSize
@@ -64,7 +66,7 @@ import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 fun SyncDeviceScreen(navController: NavController, viewModel: DeviceListViewModel = hiltViewModel()) {
     val deviceList by remember { viewModel.deviceList }.collectAsState()
     val deviceFileList = remember { viewModel.deviceFileList }
-
+    LockScreenOrientation(orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -166,6 +168,12 @@ fun SavedDeviceCard(device: DeviceStatus, onDelete: (DeviceInfo) -> Unit, onLoad
                             text = device.device.name,
                             style = MaterialTheme.typography.bodyLarge
                         )
+                        if(device.batteryLevel!=-1) {
+                            Text(
+                                text = "батарея: ${device.batteryLevel} %",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                     when (device.status) {
                         DEVICE_STATUS.CONNECTED -> {

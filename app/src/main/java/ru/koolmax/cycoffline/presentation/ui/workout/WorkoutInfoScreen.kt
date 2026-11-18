@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,8 +48,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ru.koolmax.cycoffline.R
 import ru.koolmax.cycoffline.data.db.FitSessionItem
+import ru.koolmax.cycoffline.data.media.FitFile
 import ru.koolmax.cycoffline.data.media.Zone
 import ru.koolmax.cycoffline.presentation.MeasureUtil
+import ru.koolmax.cycoffline.presentation.ui.lib.OfflineMap
 import ru.koolmax.cycoffline.ui.theme.LocalCustomColorsPalette
 import ru.koolmax.cycoffline.ui.theme.LocalSpacing
 import java.time.LocalDateTime
@@ -53,39 +59,43 @@ import java.time.LocalDateTime
 @Composable
 fun WorkoutInfoScreen(viewModel: WorkoutViewModel) {
     val session by remember { viewModel.fitSessionItem }.collectAsState()
+    val powerToWeight by remember { viewModel.powerToWeight }.collectAsState()
     val heartZone by remember { viewModel.heartZone }.collectAsState()
+    val fit by viewModel.fit.collectAsState()
 
     when(LocalConfiguration.current.orientation) {
-
         Configuration.ORIENTATION_PORTRAIT -> {
-            WorkoutInfoScreenPortrait(session, heartZone)
+            WorkoutInfoScreenPortrait(session, powerToWeight, heartZone, fit)
         }
-
         Configuration.ORIENTATION_LANDSCAPE -> {
-            WorkoutInfoScreenLandscape(session, heartZone)
+            WorkoutInfoScreenLandscape(session, powerToWeight, heartZone)
         }
     }
 }
 
 @Composable
-fun WorkoutInfoScreenPortrait(session: FitSessionItem, heartZone: List<Zone>) {
+fun WorkoutInfoScreenPortrait(session: FitSessionItem, powerToWeight: Float, heartZone: List<Zone>, fit: FitFile) {
     Column(modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        WorkoutInfo(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100), session = session)
+        WorkoutInfo(modifier = Modifier.fillMaxWidth().padding(LocalSpacing.current.space100), session = session, powerToWeight = powerToWeight)
         HeartZones(modifier = Modifier.padding(LocalSpacing.current.space100), zone = heartZone)
+        OfflineMap(modifier = Modifier.weight(1f).padding(LocalSpacing.current.space100), fit,
+            LocalCustomColorsPalette.current.trackColor,
+            LocalCustomColorsPalette.current.startColor,
+            LocalCustomColorsPalette.current.finishColor)
     }
 }
 
 @Composable
-fun WorkoutInfoScreenLandscape(session: FitSessionItem, heartZone: List<Zone>) {
+fun WorkoutInfoScreenLandscape(session: FitSessionItem, powerToWeight: Float, heartZone: List<Zone>) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        WorkoutInfo(modifier = Modifier.width(IntrinsicSize.Max).padding(LocalSpacing.current.space100), session = session)
+        WorkoutInfo(modifier = Modifier.width(IntrinsicSize.Max).padding(LocalSpacing.current.space100), session = session, powerToWeight)
         HeartZones(modifier = Modifier.padding(LocalSpacing.current.space100), zone = heartZone)
     }
 }
 
 @Composable
-fun WorkoutInfo(modifier: Modifier = Modifier, session: FitSessionItem) {
+fun WorkoutInfo(modifier: Modifier = Modifier, session: FitSessionItem, powerToWeight: Float) {
     with(session) {
         Column(modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally) {
@@ -93,17 +103,49 @@ fun WorkoutInfo(modifier: Modifier = Modifier, session: FitSessionItem) {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
+                /*Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Image(
+                        painter = painterResource(R.drawable.add_bike_computer),
+                        contentDescription = null
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.elevation_gain),
+                        contentDescription = null
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.speed),
+                        contentDescription = null
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.heart_rate),
+                        contentDescription = null
+                    )
+                    Image(
+                        painter = painterResource(R.drawable.add_bike_computer),
+                        contentDescription = null
+                    )
+                }*/
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     SessionValue(description = stringResource(R.string.elapsedTime), value = MeasureUtil.getDuration(totalElapsedTime))
                     SessionValue(description = stringResource(R.string.distance), value = MeasureUtil.getDistance(totalDistance))
                     SessionValue(description = "средняя скорость", value = MeasureUtil.getSpeed(avgSpeed?.toFloat()))
-                    SessionValue(description = "средняя ЧСС", value = MeasureUtil.getHeartRate(avgHeartRate))
+                    if(avgHeartRate!=null && maxHeartRate!=null)
+                        SessionValue(description = "средняя ЧСС", value = MeasureUtil.getHeartRate(avgHeartRate))
+                    if(avgPower!=null && maxPower!=null)
+                        SessionValue(description = "средняя мощность", value = MeasureUtil.getPower(avgPower))
+                    if(powerToWeight !=0f )
+                        SessionValue(description = "удельная мощность", value = MeasureUtil.getPowerToWeight(powerToWeight))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     SessionValue(description = stringResource(R.string.movingTime), value = MeasureUtil.getDuration(totalMovingTime))
                     SessionValue(description = "набор высоты", value = MeasureUtil.getDistance(totalAscent))
                     SessionValue(description = "максимальная скорость", value = MeasureUtil.getSpeed(maxSpeed?.toFloat()))
-                    SessionValue(description = "max ЧСС", value = MeasureUtil.getHeartRate(maxHeartRate))
+                    if(avgHeartRate!=null && maxHeartRate!=null)
+                        SessionValue(description = "max ЧСС", value = MeasureUtil.getHeartRate(maxHeartRate))
+                    if(avgPower!=null && maxPower!=null)
+                        SessionValue(description = "max мощность", value = MeasureUtil.getPower(maxPower))
+                    if(totalCalories!=null)
+                        SessionValue(description = "потраченная энергия", value = MeasureUtil.getCalories(totalCalories))
                 }
             }
         }
@@ -114,7 +156,7 @@ fun WorkoutInfo(modifier: Modifier = Modifier, session: FitSessionItem) {
 fun SessionValue(modifier: Modifier = Modifier, description: String, value: String) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = value, style = MaterialTheme.typography.headlineLarge)
+            Text(text = value, style = MaterialTheme.typography.headlineMedium)
             Text(text = description, style = MaterialTheme.typography.labelSmall)
         }
     }
@@ -124,7 +166,7 @@ fun SessionValue(modifier: Modifier = Modifier, description: String, value: Stri
 fun SessionValue(modifier: Modifier = Modifier, description: String, value: Pair<String, String>) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.Bottom) {
-            Text(style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(end = 2.dp), text = buildAnnotatedString {
+            Text(style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(end = LocalSpacing.current.space25), text = buildAnnotatedString {
                 append(value.first)
                 withStyle(style = MaterialTheme.typography.bodySmall.toSpanStyle()) {
                     append(value.second)
